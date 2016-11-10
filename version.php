@@ -11,7 +11,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2016071200;  
-$plugin->requires  = 2013051405;       // Requires this Moodle version
+$plugin->version   = 2016110300;
+$plugin->requires  = 2013051405;
 $plugin->component = 'block_my_external_backup_restore_courses'; // Full name of the plugin (used for diagnostics)
 $plugin->cron = 14400;

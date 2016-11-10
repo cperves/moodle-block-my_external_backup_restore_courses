@@ -44,17 +44,17 @@ if ($hassiteconfig) {
 	$settings->add(new admin_setting_configtext('block_my_external_backup_restore_courses/categorytable',
 			get_string('categorytable', 'block_my_external_backup_restore_courses'),
 			get_string('categorytable_desc', 'block_my_external_backup_restore_courses'),
-			''
+			'course_categories'
 	));
 	$settings->add(new admin_setting_configtext('block_my_external_backup_restore_courses/categorytable_foreignkey',
 			get_string('categorytable_foreignkey', 'block_my_external_backup_restore_courses'),
 			get_string('categorytable_foreignkey_desc', 'block_my_external_backup_restore_courses'),
-			''
+			'id'
 	));
 	$settings->add(new admin_setting_configtext('block_my_external_backup_restore_courses/categorytable_categoryfield',
 			get_string('categorytable_categoryfield', 'block_my_external_backup_restore_courses'),
 			get_string('categorytable_categoryfield_desc', 'block_my_external_backup_restore_courses'),
-			''
+			'idnumber'
 	));
 	$settings->add(new admin_setting_configcheckbox('block_my_external_backup_restore_courses/includeexternalurlinmail', get_string('includeexternalurlinmail','block_my_external_backup_restore_courses'), get_string('includeexternalurlinmail_desc','block_my_external_backup_restore_courses'), 0));
 	$settings->add(new admin_setting_configcheckbox('block_my_external_backup_restore_courses/warningstoowner', get_string('warningstoowner','block_my_external_backup_restore_courses'), get_string('warningstoowner_desc','block_my_external_backup_restore_courses'), 1));
