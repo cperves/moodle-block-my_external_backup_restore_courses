@@ -35,6 +35,7 @@ On moodles that serves courses
  * Create a user account for webservice account 
 * assign role on system context for this newly created account
 * Under webservice administration :
+  * activate rest protocole
   * Under Site administration -> Plugins -> Web Services -> External services, add a new custom service
     * check Enabled
     * ckeck Authorised users only
