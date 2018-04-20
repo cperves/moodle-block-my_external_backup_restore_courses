@@ -433,16 +433,9 @@ class block_my_external_backup_restore_courses_task{
 		if ($rc->get_status() == backup::STATUS_REQUIRE_CONV) {
 			$rc->convert();
 		}
-		$plan = $rc->get_plan();
-		$tasks = $plan->get_tasks();
-		foreach ($tasks as &$task) {
-			$setting = $task->get_setting('enrol_migratetomanual');
-			try{
-				$setting->set_value('1');
-			}catch(base_setting_exception $e){
-				//no moodle/restore:configure capability nothing to do
-			}
-		}
+		//TODO check if settings modifications necessary
+		//$plan = $rc->get_plan();
+		//$tasks = $plan->get_tasks();
 		$rc->execute_precheck();
 		$rc->execute_plan();
 		$logs = $DB->get_records_sql('select * from {backup_logs} where backupid=:backupid and (loglevel=:warning or loglevel=:error)', array('backupid'=> $rc->get_restoreid(),'warning'=> backup::LOG_WARNING, 'error'=> backup::LOG_ERROR));

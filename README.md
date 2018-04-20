@@ -39,17 +39,22 @@ On moodles that serves courses
     * check Enabled
     * ckeck Authorised users only
     * check  Can download files
-    * select capability block/my_external_backup_restore_courses:can_see_backup_courses
+    * select capabilities
+      * block/my_external_backup_restore_courses:can_see_backup_courses
+      * block/my_external_backup_restore_courses:can_retrieve_courses
   * once created add funtions to the new custom external service
     * core_webservice_get_site_info
     * block_my_external_backup_restore_courses_get_courses
     * block_my_external_backup_restore_courses_get_courses_zip
   *  add the webservice user account created previously to the authorized users of the new custom service
   * Under Site administration -> Plugins -> Web Services -> Manage Tokens
-    * create a new token, restrited on your php server(s) for the custom external sservice previously created
-    * This token will be one to enter in the block parameters off block_my_external_backup_restore_courses 
+    * create a new token, restricted on your php server(s) for the custom external sservice previously created
+    * This token will be one to enter in the block parameters off block_my_external_backup_restore_courses
+    * for more security restrict webservice usage on IP
 
 ### Block setting
+#### On moodles that serve courses (moodle servers)
+
 Under Plugins -> Blocks -> Restore courses from remote Moodles
 For each moodles you need to fill the following setting parameters
 
@@ -59,9 +64,13 @@ For each moodles you need to fill the following setting parameters
   * in my_external_backup_course | categorytable_foreignkey the database foreign key for categorytable
   * in my_external_backup_course | categorytable_categoryfield the database field in categorytable unique for a category and common for both client and server moodles
 
-course clients moodles
+#### On course clients moodles
   * in my_external_backup_course | defaultcategory the categoryid where the course will be restored by default, users that restore must have capability to moodle/course:create
   * in my_external_backup_course | externalmoodles formatted list of course servers moodles formatted as moodle_url1,token_compte_webservice_moodle_externe1;moodle_url2,token_compte_webservice_moodle_externe2;...
+
+##### Cron setting #####
+On Site administration -> Server -> Scheduled tasks
+* Edit "Restore course from remote Moodles" task to determine when restore process is launched
 
 ### Messaging
   * Site administration / ► Plugins / ► Message outputs / ► Default message outputs
