@@ -27,7 +27,7 @@ $PAGE->navbar->add(get_string('externalmoodlecourselist', 'block_my_external_bac
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('externalmoodlecourselist','block_my_external_backup_restore_courses'));
 echo $OUTPUT->box_start('my_external_backup_restore_course_refresh');
-echo html_writer::link('#', html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('a/refresh'), 'alt'=>get_string('refresh'), 'class'=>'iconsmall')),array('onclick'=>'window.location=\''.$PAGE->url->out(false).'\';return false;'));
+echo html_writer::link('#', html_writer::empty_tag('img', array('src'=>$OUTPUT->image_url('a/refresh'), 'alt'=>get_string('refresh'), 'class'=>'iconsmall')),array('onclick'=>'window.location=\''.$PAGE->url->out(false).'\';return false;'));
 echo $OUTPUT->box_end();
 echo $OUTPUT->box_start('my_external_backup_restore_course_help');
 echo html_writer::tag('span', get_string('externalmoodlehelpsection','block_my_external_backup_restore_courses'));

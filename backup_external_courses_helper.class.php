@@ -89,8 +89,8 @@ abstract class backup_external_courses_helper {
         
         $customsettings = array(
         	"backup_auto_storage" =>"2" ,
-        	"backup_auto_keep"=>"1",
-        	"backup_auto_blocks"=>"1", 
+        	"backup_auto_max_kept"=>"1",
+            "backup_auto_blocks"=>"1",
         	"backup_auto_users"=>"0",
         	"backup_auto_role_assignments"=>"0",
         	"backup_auto_activities"=>"1" ,
@@ -117,7 +117,12 @@ abstract class backup_external_courses_helper {
             );
             foreach ($settings as $setting => $configsetting) {
                 if ($bc->get_plan()->setting_exists($setting)) {
-                    $bc->get_plan()->get_setting($setting)->set_value($customsettings->{$configsetting});
+                    try {
+                        $bc->get_plan()->get_setting($setting)->set_value($customsettings->{$configsetting});
+                    } catch (base_setting_exception $be){
+                        echo "$be";
+
+                    }
                 }
             }
 
