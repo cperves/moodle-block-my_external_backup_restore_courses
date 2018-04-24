@@ -120,7 +120,7 @@ abstract class backup_external_courses_helper {
                     try {
                         $bc->get_plan()->get_setting($setting)->set_value($customsettings->{$configsetting});
                     } catch (base_setting_exception $be){
-                        echo "$be";
+                        //locked parameter not taken in charge
 
                     }
                 }
@@ -131,9 +131,6 @@ abstract class backup_external_courses_helper {
             $type = $bc->get_type();
             $id = $bc->get_id();
             $users = $bc->get_plan()->get_setting('users')->get_value();
-            $anonymised = true;
-            
-            $bc->get_plan()->get_setting('anonymize')->set_value($anonymised);
 			//awaiting status
             $bc->set_status(backup::STATUS_AWAITING);
             $bc->execute_plan();

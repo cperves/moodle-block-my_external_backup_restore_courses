@@ -428,16 +428,24 @@ class block_my_external_backup_restore_courses_task{
 		$shortname = (string)($shortname[0]);
 		//restore
 		$courseid = restore_dbops::create_new_course($fullname, $shortname, $categoryid);
-		$rc = new restore_controller(block_my_external_backup_restore_courses_task_helper::BACKUP_TEMPDIRNAME, $courseid, backup::INTERACTIVE_NO,
-				backup::MODE_GENERAL, $this->task->userid, backup::TARGET_NEW_COURSE);
+		try {
+            $rc = new restore_controller(block_my_external_backup_restore_courses_task_helper::BACKUP_TEMPDIRNAME, $courseid, backup::INTERACTIVE_NO,
+                backup::MODE_GENERAL, $this->task->userid, backup::TARGET_NEW_COURSE);
+        }catch(restore_controller_exception $re){
+		    print_error($re->getMessage()." ".$re->a->capability." for user ".$re->a->userid);
+        }
 		if ($rc->get_status() == backup::STATUS_REQUIRE_CONV) {
 			$rc->convert();
 		}
-		//TODO check if settings modifications necessary
-		//$plan = $rc->get_plan();
-		//$tasks = $plan->get_tasks();
-		$rc->execute_precheck();
+
+        if (!$rc->execute_precheck()) {
+            $check = $rc->get_precheck_results();
+            print_error("Restore failed : ".var_dump($check));
+            die();
+        }
+
 		$rc->execute_plan();
+        $rc->destroy();
 		$logs = $DB->get_records_sql('select * from {backup_logs} where backupid=:backupid and (loglevel=:warning or loglevel=:error)', array('backupid'=> $rc->get_restoreid(),'warning'=> backup::LOG_WARNING, 'error'=> backup::LOG_ERROR));
 		if($logs){
 			foreach($logs as $log){

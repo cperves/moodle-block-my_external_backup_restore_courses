@@ -80,9 +80,15 @@ On Site administration -> Server -> Scheduled tasks
   * by default allowed and permitted for mails
 
 ### capability
-in order to use this block in dashboard a capability block/my_external_backup_restore_courses:view is provided and by default allowed for coursecreator and manager profile
-This enable to controle block visibility in dashboard
-
+* in order to use this block in dashboard a capability block/my_external_backup_restore_courses:view is provided and by default allowed for coursecreator and manager profile
+* This enable to control block visibility in dashboard
+* To restore a course the given user must have all the necessary capability to restore course and activities in the client moodle targeted course category
+  * moodle/restore:restorecourse capability on client moodle
+  * moodle/restore:restoreactivity
+  * moodle/restore:restoresection
+  * moodle/question:add
+  * moodle/question:managecategory
+  * ... depending of your plugins
 
 ## Contributions
 
