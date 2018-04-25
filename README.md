@@ -90,6 +90,10 @@ On Site administration -> Server -> Scheduled tasks
   * moodle/question:managecategory
   * ... depending of your plugins
 
+## Administration from moodle
+An admin tool is available at : 
+https://moodle.org/plugins/tool_my_external_backup_restore_courses_admin
+
 ## Contributions
 
 Contributions of any form are welcome. Github pull requests are preferred.
