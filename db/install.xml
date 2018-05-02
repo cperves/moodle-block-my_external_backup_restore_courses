@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="blocks/community/db" VERSION="20151027" COMMENT="XMLDB file for Moodle blocks/my_external_backup_restore_course"
+<XMLDB PATH="blocks/my_external_backup_restore_courses/db" VERSION="20151027" COMMENT="XMLDB file for Moodle blocks/my_external_backup_restore_course"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
