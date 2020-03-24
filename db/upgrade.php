@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Folder plugin version information
+ * block_my_external_backup_restore_courses db upgrade file
  *
  * @package
  * @subpackage
@@ -25,21 +25,20 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-$messageproviders = array(
-        // Notify that an external course is successfully restored.
-        'restorationsuccess' => array(
-                'defaults' => array(
-                    'popup' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
-                    'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF
-                )
+function xmldb_block_my_external_backup_restore_courses_upgrade($oldversion=0) {
+    global $DB;
+    $newversion = 2019052302;
+    if ($oldversion < $newversion) {
+        $dbman = $DB->get_manager();
 
-        ),
-        // Notify that an external course as failed to restore.
-        'restorationfailed' => array(
-
-                'defaults' => array(
-                    'popup' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
-                    'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF
-                )
-        ),
-);
+        $table = new xmldb_table('block_external_backuprestore');
+        if ($dbman->table_exists($table)) {
+            $field = new xmldb_field('courseid', XMLDB_TYPE_INTEGER, '10', null, false, null, null);
+            $dbman->add_field($table, $field);
+            $key = new xmldb_key('course', XMLDB_KEY_FOREIGN, array('courseid'), 'course', array('id'));
+            $dbman->add_key($table, $key);
+        }
+        upgrade_block_savepoint(true, $newversion, 'my_external_backup_restore_courses');
+    }
+    return true;
+}
