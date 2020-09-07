@@ -41,3 +41,4 @@ class backup_restore_task extends \core\task\scheduled_task {
         $errors = \block_my_external_backup_restore_courses_task_helper::run_automated_backup_restore();
     }
 }
+?>

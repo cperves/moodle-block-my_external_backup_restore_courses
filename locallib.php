@@ -41,24 +41,19 @@ class block_my_external_backup_restore_courses_tools{
         return rmdir($dir);
     }
 
-    public static function enrol_get_courses_with_role($courseid, $userid, $roleid) {
+    public static function enrol_get_courses_with_role($courseid, $userid, $roleid){
         global $DB;
-        $sql = 'SELECT distinct e.id
+        $sql='SELECT distinct e.id
                    FROM {enrol} e
                    inner JOIN {user_enrolments} ue ON (ue.enrolid = e.id)
                    inner JOIN {course} c ON (c.id = e.courseid)
-                   inner join {context} ctx on ctx.instanceid = c.id and ctx.contextlevel=:coursecontextlevel
-                   inner join {role_assignments} ra on ra.contextid=ctx.id and ra.userid=:userid
+                   inner join {context} ctx on ctx.instanceid = c.id and ctx.contextlevel=:coursecontextlevel 
+                   inner join {role_assignments} ra on ra.contextid=ctx.id and ra.userid=:userid 
                    inner join {role} r on ra.roleid=r.id and r.id=:roleid
                   WHERE c.id=:courseid';
-        try {
-            return $DB->get_records_sql($sql,
-                    array('coursecontextlevel' => CONTEXT_COURSE,
-                            'userid' => $userid,
-                            'roleid' => $roleid,
-                            'courseid' => $courseid
-                    ));
-        } catch (Exception $ex) {
+        try{
+            return $DB->get_records_sql($sql, array('coursecontextlevel'=>CONTEXT_COURSE, 'userid'=> $userid, 'roleid'=>$roleid, 'courseid'=>$courseid));
+        }catch(Exception $ex){
             print_error(var_dump($ex));
             return false;
         }
@@ -140,8 +135,7 @@ class block_my_external_backup_restore_courses_tools{
 
         if ($onlyactive) {
             $subwhere =
-                ' AND  ue.status = :active AND e.status = :enabled'
-                .' AND ue.timestart < :now1 AND (ue.timeend = 0 OR ue.timeend > :now2)';
+                " AND  ue.status = :active AND e.status = :enabled AND ue.timestart < :now1 AND (ue.timeend = 0 OR ue.timeend > :now2)";
             $params['now1']    = round(time(), -2); // Improves db caching.
             $params['now2']    = $params['now1'];
             $params['active']  = ENROL_USER_ACTIVE;
@@ -155,7 +149,7 @@ class block_my_external_backup_restore_courses_tools{
         $join = "LEFT JOIN mdl_context ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = ".CONTEXT_COURSE.")";
         list($ccselect, $ccjoin) = array($select, $join);
 
-        $newformattedroles = self::get_formatted_concerned_roles_shortname();
+        $newformattedroles = self::getFormattedConcernedRolesShortname();
         if (count($newformattedroles) == 0) {
             return false;
         }
@@ -165,13 +159,12 @@ class block_my_external_backup_restore_courses_tools{
                       FROM {course} c
                       INNER JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = ".CONTEXT_COURSE.")
                       INNER JOIN (
-                        SELECT ra.contextid AS contextid, usr.firstname AS firstname, usr.lastname AS lastname
-                        FROM {role_assignments} ra
+                        SELECT ra.contextid AS contextid, usr.firstname AS firstname, usr.lastname AS lastname FROM {role_assignments} ra
                         INNER JOIN {role} r ON (r.id = ra.roleid and r.shortname IN (".implode(',', $newformattedroles)."))
                         INNER JOIN {user} usr ON (ra.userid = usr.id AND usr.id = $userid AND usr.deleted=0)
                         ) AS u ON (u.contextid = ctx.id)
                     $categoryjoin
-                    WHERE c.id <> ".SITEID.$categorywhere
+                    WHERE c.id <> ".SITEID
                  ." UNION
                 SELECT $coursefields $ccselect $categoryselect
                     FROM {course} c
@@ -188,7 +181,7 @@ class block_my_external_backup_restore_courses_tools{
                     INNER JOIN {user} u ON u.id = cat.userid AND u.id = ue.userid AND u.deleted=0
                     INNER JOIN {role} r ON r.id = cat.roleid AND r.shortname IN (".implode(',', $newformattedroles).")
                     $categoryjoin
-                    WHERE u.id = $userid AND c.id <> ".SITEID.$categorywhere
+                    WHERE u.id = $userid AND c.id <> ".SITEID
                       .$subwhere." ".$orderby;
 
         $courses = $DB->get_records_sql($sql, $params);
@@ -238,23 +231,23 @@ class block_my_external_backup_restore_courses_tools{
         }
         return $resp;
     }
-    public static function get_authorized_repository_to_restore() {
-        $authorizedrepositories = array();
+    public static function getAuthorizedRepositoryToRestore(){
+        $authorizedRepositories = array();
         $config = get_config("block_my_external_backup_restore_courses");
         if ($config->authorizeremoterepositoryrestore && !empty($config->repositorytypestorestore)) {
             $repositorytypes = explode(';', $config->repositorytypestorestore);
             foreach ($repositorytypes as $repositorytype) {
-                // Check repository exists and is activated.
+                //check repository exists and is activated
                 $repositorytypeobj = repository::get_type_by_typename($repositorytype);
                 if (isset($repositorytypeobj) && $repositorytypeobj->get_visible()) {
-                    array_push($authorizedrepositories, $repositorytypeobj->get_typename());
+                    array_push($authorizedRepositories, $repositorytypeobj->get_typename());
                 }
             }
         }
-        return $authorizedrepositories;
+        return $authorizedRepositories;
     }
 
-    public static function get_formatted_concerned_roles_shortname() {
+    public static function getFormattedConcernedRolesShortname(){
         $config = get_config("block_my_external_backup_restore_courses");
         $roles = $config->search_roles;
         if (empty($roles)) {
@@ -268,69 +261,57 @@ class block_my_external_backup_restore_courses_tools{
         return $newformattedroles;
     }
 
-    public static function get_concerned_roles_shortname() {
+    public static function getConcernedRolesShortname(){
         $config = get_config("block_my_external_backup_restore_courses");
         $roles = $config->search_roles;
-        $roles = str_replace("'", '', $roles);
-         return empty($roles) ? array() : explode(',', $roles);
+        $roles = str_replace("'",'',$roles);
+         return empty($roles)? array(): explode(',', $roles);
     }
 
-    public static function format_string_list_for_sql($stringlist, $delimiter=',') {
+    public static function formatStringListForSql($stringlist, $delimiter=','){
         $list = explode($delimiter, $stringlist);
-        foreach ($list as $index => $element) {
+        foreach($list as $index => $element){
             $list[$index] = '\''.$element.'\'';
         }
         return implode($delimiter, $list);
     }
 
-    public static function is_repository_authorized_to_restore($repositorytype) {
-        $authorizedrepositories = self::get_authorized_repository_to_restore();
-        if (in_array($repositorytype, $authorizedrepositories)) {
+    public static function IsRepositoryAuthorizedToRestore($repositorytype){
+        $authorizedRepositories = self::getAuthorizedRepositoryToRestore();
+        if(in_array($repositorytype,$authorizedRepositories)){
             return true;
         }
         return false;
     }
 
-    public static function external_course_restored_or_on_way_by_other_users($externalcourseid, $externalmoodleurl, $localuserid) {
+    public static function externalCourseRestoredOrOnWayByOtherUsers($externalcourseid,$externalmoodleurl,$localuserid){
         global $DB;
-        $sql = 'select b.*, u.username, u.lastname, u.firstname from {block_external_backuprestore} b
-                    inner join {user} u on u.id=b.userid
-                    where externalcourseid=:externalcourseid and externalmoodleurl=:externalmoodleurl
-                        and userid<>:localuserid and status>:errorstatus';
-        $alreadyrestoredcourses = $DB->get_records_sql($sql,
+        $sql = 'select b.*, u.username, u.lastname, u.firstname from {block_external_backuprestore} as b inner join {user} as u on u.id=b.userid where externalcourseid=:externalcourseid and externalmoodleurl=:externalmoodleurl and userid<>:localuserid and status>:errorstatus;';
+        $alreadyRestoredCourses = $DB->get_records_sql($sql,
                     array('externalcourseid' => $externalcourseid, 'externalmoodleurl' => $externalmoodleurl,
                             'localuserid' => $localuserid,
-                            'errorstatus' => self::STATUS_ERROR));
-        return $alreadyrestoredcourses;
+                            'errorstatus' => block_my_external_backup_restore_courses_tools::STATUS_ERROR));
+        return $alreadyRestoredCourses;
     }
 
-    public static function get_other_users_for_course_restored_or_on_way_by_other_users($externalcourseid,
-            $externalmoodleurl, $localuserid
-    ) {
+    public static function getOtherUsersForCourseRestoredOrOnWayByOtherUsers($externalcourseid,$externalmoodleurl,$localuserid){
         global $DB;
-        $sql = 'select * from {block_external_backuprestore}
-                    where externalcourseid=:externalcourseid and externalmoodleurl=:externalmoodleurl
-                        and userid<>:localuserid and status>:errorstatus;';
-        $alreadyrestoredcourses = $DB->get_records($sql,
-                array('externalcoursename' => $externalcourseid,
-                        'externalmoodleurl' => $externalmoodleurl,
-                        'userid' => $localuserid,
-                        'errorstatus' => self::STATUS_ERROR
-                ));
-        if (!$alreadyrestoredcourses) {
+        $sql = 'select * from {block_external_backuprestore} where externalcourseid=:externalcourseid and externalmoodleurl=:externalmoodleurl and userid<>:localuserid and status>:errorstatus;';
+        $alreadyRestoredCourses = $DB->get_records($sql, array('externalcoursename'=>$externalcourseid, 'externalmoodleurl'=> $externalmoodleurl, 'userid'=> $localuserid, 'errorstatus'=> block_my_external_backup_restore_courses_tools::STATUS_ERROR));
+        if(!$alreadyRestoredCourses){
             return null;
         }
         $concernedusers = array();
-        foreach ($alreadyrestoredcourses as $alreadyrestoredcourse) {
-            $currentuser = $DB->get_record('user', array('id' => $alreadyrestoredcourse->id));
+        foreach($alreadyRestoredCourses as $alreadyRestoredCourse){
+            $currentuser = $DB->get_record('user', array('id' => $alreadyRestoredCourse->id));
             $concernedusers[$currentuser->username] = $currentuser;
         }
         return $concernedusers;
     }
 
-    public static function array_contains_object_with_properties($array, $propertyname, $values) {
-        foreach ($array as $elt) {
-            if (in_array($elt->$propertyname, $values)) {
+    public static function arrayContainsObjectWithProperties($array, $propertyname, $values){
+        foreach ($array as $elt){
+            if (in_array($elt->$propertyname,$values)){
                 return true;
             }
         }
@@ -589,9 +570,8 @@ class block_my_external_backup_restore_courses_task{
                 $courseid, backup::INTERACTIVE_NO,
                 backup::MODE_GENERAL, $this->task->userid, backup::TARGET_NEW_COURSE);
         } catch (restore_controller_exception $re) {
-            $this->taskerrors[] = new block_my_external_backup_restore_courses_task_error($this->task,
-                    $re->getMessage()." ".$re->a->capability." for user ".$re->a->userid);
-            // Exit.
+            $this->taskerrors[] = new block_my_external_backup_restore_courses_task_error($this->task, $re->getMessage()." ".$re->a->capability." for user ".$re->a->userid);
+            //exit
             return false;
         }
         if ($rc->get_status() == backup::STATUS_REQUIRE_CONV) {
@@ -600,25 +580,24 @@ class block_my_external_backup_restore_courses_task{
 
         if (!$rc->execute_precheck()) {
             $check = $rc->get_precheck_results();
-            $errormessage = '';
+            $errormessage='';
             $haserrors = false;
-            if (is_array($check)) {
+            if(is_array($check)) {
                 $haserrors = array_key_exists('errors', $check);
-                foreach ($check as $index => $messages) {
-                    if ($index == '') {
+                foreach ($check as $index => $messages){
+                    if($index == ''){
                         $index = 'unknown level';
                     }
-                    foreach ($messages as $message) {
+                    foreach($messages as $message) {
                         $errormessage .= $index . '=' . $message . PHP_EOL;
                     }
                 }
-            } else {
+            }else{
                 $errormessage = $check;
             }
-            $this->taskerrors[] = new block_my_external_backup_restore_courses_task_error($this->task,
-                    "Restore failed : ".PHP_EOL.$errormessage);
-            // Exit.
-            if ($haserrors) {
+            $this->taskerrors[] = new block_my_external_backup_restore_courses_task_error($this->task, "Restore failed : ".PHP_EOL.$errormessage);
+            //exit
+            if($haserrors) {
                 return false;
             }
         }
@@ -691,10 +670,10 @@ class block_my_external_backup_restore_courses_task{
         $this->task->timemodified = $this->task->timescheduleprocessed;
         $DB->update_record('block_external_backuprestore', $this->task);
     }
-    public function set_local_courseid($courseid) {
+    public function set_local_courseid($courseid){
         global $DB;
         $this->task->courseid = $courseid;
-        $this->task->timemodified = time();
+        $this->task->timemodified= time();
         $DB->update_record('block_external_backuprestore', $this->task);
     }
     public function get_username() {
@@ -769,7 +748,7 @@ class block_my_external_backup_restore_courses_task{
         // Current messaging.
         $eventdata = new \core\message\message();
         $eventdata->component = 'block_my_external_backup_restore_courses';
-        $eventdata->courseid = SITEID;
+        $eventdata->courseid= SITEID;
         $eventdata->name = 'restorationsuccess';
         $eventdata->userfrom = core_user::get_noreply_user();
         $eventdata->subject = get_string('success_mail_subject', 'block_my_external_backup_restore_courses');

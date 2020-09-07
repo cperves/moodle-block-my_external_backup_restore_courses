@@ -9,6 +9,7 @@ this block must be installed in each moodle course clients and course servers in
   * restore cours in a default category (user must hace moodle/course:create in that context)
   * a scheduled task will launch remote backups and restorations of these courses
   * Log and messaging include to notify of succes or failure
+  * possibilily to restrict to only one restoration by course
 
 ## Security warning
 * This plugin use a capability block/my_external_backup_restore_courses:can_retrieve_courses that enable webservice account to donload backup files of other users
@@ -53,7 +54,8 @@ On moodles that serves courses
     * for more security restrict webservice usage on IP
 
 ### Block setting
-#### On moodles that serve courses (moodle servers)
+#### Essential settings
+##### On moodles that serve courses (moodle servers)
 
 Under Plugins -> Blocks -> Restore courses from remote Moodles
 For each moodles you need to fill the following setting parameters
@@ -64,22 +66,15 @@ For each moodles you need to fill the following setting parameters
   * in my_external_backup_course | categorytable_foreignkey the database foreign key for categorytable
   * in my_external_backup_course | categorytable_categoryfield the database field in categorytable unique for a category and common for both client and server moodles
 
-#### On course clients moodles
+##### On course clients moodles
   * in my_external_backup_course | defaultcategory the categoryid where the course will be restored by default, users that restore must have capability to moodle/course:create
   * in my_external_backup_course | externalmoodles formatted list of course servers moodles formatted as moodle_url1,token_compte_webservice_moodle_externe1;moodle_url2,token_compte_webservice_moodle_externe2;...
 
-##### Cron setting #####
+###### Cron setting 
 On Site administration -> Server -> Scheduled tasks
 * Edit "Restore course from remote Moodles" task to determine when restore process is launched
 
-### Messaging
-  * Site administration / ► Plugins / ► Message outputs / ► Default message outputs
-  * 2 message outputs :
-    * Notify that an external course as failed to restore
-    * Notify that an external course is successfully restored
-  * by default allowed and permitted for mails
-
-### capability
+#### capability
 * in order to use this block in dashboard a capability block/my_external_backup_restore_courses:view is provided and by default allowed for coursecreator and manager profile
 * This enable to control block visibility in dashboard
 * To restore a course the given user must have all the necessary capability to restore course and activities in the client moodle targeted course category
@@ -89,6 +84,28 @@ On Site administration -> Server -> Scheduled tasks
   * moodle/question:add
   * moodle/question:managecategory
   * ... depending of your plugins
+
+#### Optional interesting settings
+### Messaging
+  * Site administration / ► Plugins / ► Message outputs / ► Default message outputs
+  * 2 message outputs :
+    * Notify that an external course as failed to restore
+    * Notify that an external course is successfully restored
+  * by default allowed and permitted for mails
+  
+### role
+* In Site administration -> Plugins -> Blocks -> Restore courses from remote Moodles
+* block_my_external_backup_restore_courses | search_roles : enable to change/add moodle role used to search remote courses to restore
+
+### repository option
+* In Site administration -> Plugins -> Blocks -> Restore courses from remote Moodles
+* block_my_external_backup_restore_courses | authorizeremoterepositoryrestore : enable to restore not local files to be restored
+
+### Restriction
+* In Site administration -> Plugins -> Blocks -> Restore courses from remote Moodles
+* block_my_external_backup_restore_courses | onlyoneremoteinstance : Only one restoration is authorized by course
+* block_my_external_backup_restore_courses | enrollrole : define the role in wich the user will be re enrolled to course through the given button in the backupn external course button
+
 
 ## Administration from moodle
 An admin tool is available at : 

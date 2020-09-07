@@ -45,19 +45,19 @@ class block_my_external_backup_restore_courses_privacy_testcase extends \core_pr
      * Function that get the list of contexts that contain user information for the specified user.
      * @throws coding_exception
      */
-    public function test_user_contextlist() {
+    public function test_user_contextlist(){
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $usercontext = \context_user::instance($user->id);
-        list($entryscheduled, $entryinprogress, $entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
+        list($entryscheduled,$entryinprogress,$entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
 
-        // Test.
+        // test
         $contextlist = provider::get_contexts_for_userid($user->id);
         $this->assertCount(2, $contextlist);
         $courseperforedcontext = context_course::instance($entryperformed->courseid);
-        $this->assertContains($usercontext, $contextlist->get_contexts());
-        $this->assertContains($courseperforedcontext, $contextlist->get_contexts());
+        $this->assertContains($usercontext,$contextlist->get_contexts());
+        $this->assertContains($courseperforedcontext,$contextlist->get_contexts());
 
     }
 
@@ -66,33 +66,33 @@ class block_my_external_backup_restore_courses_privacy_testcase extends \core_pr
      * Function that Export all data within a context for a component for the specified user.
      * @throws coding_exception
      */
-    public function test_export_context_data_for_user() {
+    public function test_export_context_data_for_user(){
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $usercontext = \context_user::instance($user->id);
-        list($entryscheduled, $entryinprogress, $entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
-        $this->export_context_data_for_user($user->id, $usercontext, 'block_my_external_backup_restore_courses');
+        list($entryscheduled,$entryinprogress,$entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
+        $this->export_context_data_for_user($user->id, $usercontext,'block_my_external_backup_restore_courses');
         $writer = \core_privacy\local\request\writer::with_context($usercontext);
-        $data = $writer->get_data([get_string('pluginname', 'block_my_external_backup_restore_courses')]);
+        $data = $writer->get_data([get_string('pluginname','block_my_external_backup_restore_courses')]);
         $this->assertTrue($writer->has_any_data());
         $this->assertInstanceOf('stdClass', $data);
         $this->assertTrue(property_exists($data, 'restore_course_records'));
         $this->assertCount(4, $data->restore_course_records);
-        foreach ($data->restore_course_records as $restorecourserecord) {
-            $this->assertEquals($user->id, $restorecourserecord->userid);
+        foreach($data->restore_course_records as $restore_course_record){
+            $this->assertEquals($user->id, $restore_course_record->userid);
         }
-        // Course_context.
+        //course_context
         $courseperformedcontext = context_course::instance($entryperformed->courseid);
-        $this->export_context_data_for_user($user->id, $courseperformedcontext , 'block_my_external_backup_restore_courses');
+        $this->export_context_data_for_user($user->id, $courseperformedcontext,'block_my_external_backup_restore_courses');
         $writer = \core_privacy\local\request\writer::with_context($courseperformedcontext);
-        $data = $writer->get_data([get_string('pluginname', 'block_my_external_backup_restore_courses')]);
+        $data = $writer->get_data([get_string('pluginname','block_my_external_backup_restore_courses')]);
         $this->assertTrue($writer->has_any_data());
         $this->assertInstanceOf('stdClass', $data);
         $this->assertTrue(property_exists($data, 'restore_course_records'));
         $this->assertCount(1, $data->restore_course_records);
-        foreach ($data->restore_course_records as $restorecourserecord) {
-            $this->assertEquals($courseperformedcontext->instanceid, $restorecourserecord->courseid);
+        foreach($data->restore_course_records as $restore_course_record){
+            $this->assertEquals($courseperformedcontext->instanceid, $restore_course_record->courseid);
         }
     }
 
@@ -101,34 +101,33 @@ class block_my_external_backup_restore_courses_privacy_testcase extends \core_pr
      * funciton that export all data for a component for the specified user.
      * @throws coding_exception
      */
-    public function test_export_all_data_for_user() {
+    public function test_export_all_data_for_user(){
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $usercontext = \context_user::instance($user->id);
-        list($entryscheduled, $entryinprogress, $entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
-        $this->export_all_data_for_user($user->id, 'block_my_external_backup_restore_courses');
+        list($entryscheduled,$entryinprogress,$entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
+        $this->export_all_data_for_user($user->id,'block_my_external_backup_restore_courses');
         $writer = \core_privacy\local\request\writer::with_context($usercontext);
-        $data = $writer->get_data([get_string('pluginname', 'block_my_external_backup_restore_courses')]);
+        $data = $writer->get_data([get_string('pluginname','block_my_external_backup_restore_courses')]);
         $this->assertTrue($writer->has_any_data());
         $this->assertInstanceOf('stdClass', $data);
         $this->assertTrue(property_exists($data, 'restore_course_records'));
         $this->assertCount(4, $data->restore_course_records);
-        foreach ($data->restore_course_records as $restorecourserecord) {
-            $this->assertEquals($user->id, $restorecourserecord->userid);
+        foreach($data->restore_course_records as $restore_course_record){
+            $this->assertEquals($user->id, $restore_course_record->userid);
         }
-        // Course_context.
+        //course_context
         $courseperformedcontext = context_course::instance($entryperformed->courseid);
-        $this->export_context_data_for_user($user->id, $courseperformedcontext,
-                'block_my_external_backup_restore_courses');
+        $this->export_context_data_for_user($user->id, $courseperformedcontext,'block_my_external_backup_restore_courses');
         $writer = \core_privacy\local\request\writer::with_context($courseperformedcontext);
-        $data = $writer->get_data([get_string('pluginname', 'block_my_external_backup_restore_courses')]);
+        $data = $writer->get_data([get_string('pluginname','block_my_external_backup_restore_courses')]);
         $this->assertTrue($writer->has_any_data());
         $this->assertInstanceOf('stdClass', $data);
         $this->assertTrue(property_exists($data, 'restore_course_records'));
         $this->assertCount(1, $data->restore_course_records);
-        foreach ($data->restore_course_records as $restorecourserecord) {
-            $this->assertEquals($courseperformedcontext->instanceid, $restorecourserecord->courseid);
+        foreach($data->restore_course_records as $restore_course_record){
+            $this->assertEquals($courseperformedcontext->instanceid, $restore_course_record->courseid);
         }
     }
 
@@ -137,12 +136,12 @@ class block_my_external_backup_restore_courses_privacy_testcase extends \core_pr
      * Function that delete all data for all users in the specified context
      * @throws coding_exception
      */
-    public function test_delete_data_for_all_users_in_context() {
+    public function test_delete_data_for_all_users_in_context(){
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $usercontext = \context_user::instance($user->id);
-        list($entryscheduled, $entryinprogress, $entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
+        list($entryscheduled,$entryinprogress,$entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
         $courseperformedcontext = context_course::instance($entryperformed->courseid);
         $contextlist = provider::get_contexts_for_userid($user->id);
         $this->assertCount(2, $contextlist);
@@ -151,17 +150,17 @@ class block_my_external_backup_restore_courses_privacy_testcase extends \core_pr
         $this->assertCount(1, $contextlist);
         provider::delete_data_for_all_users_in_context($usercontext);
         $contextlist = provider::get_contexts_for_userid($user->id);
-        $this->assertCount(1, $contextlist);// Inprogress state not deleted.
-        $this->export_context_data_for_user($user->id, $usercontext, 'block_my_external_backup_restore_courses');
+        $this->assertCount(1, $contextlist);// inprogress state not deleted
+        $this->export_context_data_for_user($user->id,$usercontext,'block_my_external_backup_restore_courses');
         $writer = \core_privacy\local\request\writer::with_context($usercontext);
-        $data = $writer->get_data([get_string('pluginname', 'block_my_external_backup_restore_courses')]);
+        $data = $writer->get_data([get_string('pluginname','block_my_external_backup_restore_courses')]);
         $this->assertTrue($writer->has_any_data());
         $this->assertInstanceOf('stdClass', $data);
         $this->assertTrue(property_exists($data, 'restore_course_records'));
         $this->assertCount(1, $data->restore_course_records);
-        foreach ($data->restore_course_records as $restorecourserecord) {
-            $this->assertEquals(null, $restorecourserecord->courseid);
-            $this->assertEquals(block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS, $restorecourserecord->status);
+        foreach($data->restore_course_records as $restore_course_record){
+            $this->assertEquals(null, $restore_course_record->courseid);
+            $this->assertEquals(block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS, $restore_course_record->status);
         }
     }
 
@@ -170,12 +169,12 @@ class block_my_external_backup_restore_courses_privacy_testcase extends \core_pr
      * Function that Delete multiple users within a single context.
      * @throws coding_exception
      */
-    public function test_delete_data_for_all_users() {
+    public function test_delete_data_for_all_users(){
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $usercontext = \context_user::instance($user->id);
-        list($entryscheduled, $entryinprogress, $entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
+        list($entryscheduled,$entryinprogress,$entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
         $courseperformedcontext = context_course::instance($entryperformed->courseid);
         $userapproveduserlist = new approved_userlist($usercontext, 'block_user_session', [$user->id]);
         $courseapproveduserlist = new approved_userlist($courseperformedcontext, 'block_user_session', [$user->id]);
@@ -187,16 +186,16 @@ class block_my_external_backup_restore_courses_privacy_testcase extends \core_pr
         provider::delete_data_for_users($userapproveduserlist);
         $contextlist = provider::get_contexts_for_userid($user->id);
         $this->assertCount(1, $contextlist);
-        $this->export_context_data_for_user($user->id, $usercontext, 'block_my_external_backup_restore_courses');
+        $this->export_context_data_for_user($user->id,$usercontext,'block_my_external_backup_restore_courses');
         $writer = \core_privacy\local\request\writer::with_context($usercontext);
-        $data = $writer->get_data([get_string('pluginname', 'block_my_external_backup_restore_courses')]);
+        $data = $writer->get_data([get_string('pluginname','block_my_external_backup_restore_courses')]);
         $this->assertTrue($writer->has_any_data());
         $this->assertInstanceOf('stdClass', $data);
         $this->assertTrue(property_exists($data, 'restore_course_records'));
         $this->assertCount(1, $data->restore_course_records);
-        foreach ($data->restore_course_records as $restorecourserecord) {
-            $this->assertEquals(null, $restorecourserecord->courseid);
-            $this->assertEquals(block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS, $restorecourserecord->status);
+        foreach($data->restore_course_records as $restore_course_record){
+            $this->assertEquals(null, $restore_course_record->courseid);
+            $this->assertEquals(block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS, $restore_course_record->status);
         }
 
     }
@@ -212,7 +211,7 @@ class block_my_external_backup_restore_courses_privacy_testcase extends \core_pr
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $usercontext = \context_user::instance($user->id);
-        list($entryscheduled, $entryinprogress, $entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
+        list($entryscheduled,$entryinprogress,$entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
         $courseperformedcontext = context_course::instance($entryperformed->courseid);
         $approvedcontextlist = new \core_privacy\tests\request\approved_contextlist(
                 \core_user::get_user($user->id),
@@ -224,16 +223,16 @@ class block_my_external_backup_restore_courses_privacy_testcase extends \core_pr
         provider::delete_data_for_user($approvedcontextlist);
         $contextlist = provider::get_contexts_for_userid($user->id);
         $this->assertCount(1, $contextlist);
-        $this->export_context_data_for_user($user->id, $usercontext, 'block_my_external_backup_restore_courses');
+        $this->export_context_data_for_user($user->id,$usercontext,'block_my_external_backup_restore_courses');
         $writer = \core_privacy\local\request\writer::with_context($usercontext);
-        $data = $writer->get_data([get_string('pluginname', 'block_my_external_backup_restore_courses')]);
+        $data = $writer->get_data([get_string('pluginname','block_my_external_backup_restore_courses')]);
         $this->assertTrue($writer->has_any_data());
         $this->assertInstanceOf('stdClass', $data);
         $this->assertTrue(property_exists($data, 'restore_course_records'));
         $this->assertCount(1, $data->restore_course_records);
-        foreach ($data->restore_course_records as $restorecourserecord) {
-            $this->assertEquals(null, $restorecourserecord->courseid);
-            $this->assertEquals(block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS, $restorecourserecord->status);
+        foreach($data->restore_course_records as $restore_course_record){
+            $this->assertEquals(null, $restore_course_record->courseid);
+            $this->assertEquals(block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS, $restore_course_record->status);
         }
 
     }
@@ -243,26 +242,26 @@ class block_my_external_backup_restore_courses_privacy_testcase extends \core_pr
      * @param stdClass $user
      * @throws coding_exception
      */
-    private function create_backuprestore_entries(stdClass $user) {
+    private function create_backuprestore_entries(stdClass $user){
         $courseperformed = $this->getDataGenerator()->create_course();
         $entryscheduled = $this->getDataGenerator()->get_plugin_generator('block_my_external_backup_restore_courses')
-            ->create_backup_restore_entry($user->id, $courseperformed->id + 1, $courseperformed->category);
+                ->create_backup_restore_entry($user->id, $courseperformed->id+1, $courseperformed->category);
         $entryinprogress = $this->getDataGenerator()->get_plugin_generator('block_my_external_backup_restore_courses')
-            ->create_backup_restore_entry($user->id, $courseperformed->id + 2, $courseperformed->category);
+                ->create_backup_restore_entry($user->id, $courseperformed->id+2, $courseperformed->category);
         $entryinprogress->status = block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS;
         $entryinprogress = $this->getDataGenerator()->get_plugin_generator('block_my_external_backup_restore_courses')
-            ->update_backup_restore_entry($entryinprogress);
+                ->update_backup_restore_entry($entryinprogress);
         $entryperformed = $this->getDataGenerator()->get_plugin_generator('block_my_external_backup_restore_courses')
-            ->create_backup_restore_entry($user->id, $courseperformed->id, $courseperformed->category);
+                ->create_backup_restore_entry($user->id, $courseperformed->id, $courseperformed->category);
         $entryperformed->status = block_my_external_backup_restore_courses_tools::STATUS_PERFORMED;
         $entryperformed->courseid = $courseperformed->id;
         $entryperformed = $this->getDataGenerator()->get_plugin_generator('block_my_external_backup_restore_courses')
-            ->update_backup_restore_entry($entryperformed);
+                ->update_backup_restore_entry($entryperformed);
         $entryerror = $this->getDataGenerator()->get_plugin_generator('block_my_external_backup_restore_courses')
-            ->create_backup_restore_entry($user->id, $courseperformed->id + 3, $courseperformed->category);
+                ->create_backup_restore_entry($user->id, $courseperformed->id+3, $courseperformed->category);
         $entryerror->status = block_my_external_backup_restore_courses_tools::STATUS_ERROR;
         $entryerror = $this->getDataGenerator()->get_plugin_generator('block_my_external_backup_restore_courses')
-            ->update_backup_restore_entry($entryerror);
-        return array($entryscheduled, $entryinprogress, $entryperformed, $entryerror);
+                ->update_backup_restore_entry($entryerror);
+        return array($entryscheduled,$entryinprogress,$entryperformed, $entryerror);
     }
 }

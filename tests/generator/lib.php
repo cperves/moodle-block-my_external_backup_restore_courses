@@ -29,7 +29,16 @@ defined('MOODLE_INTERNAL') || die();
 
 class block_my_external_backup_restore_courses_generator extends testing_block_generator {
 
-    public function create_backup_restore_entry($userid, $courseid, $categoryid) {
+    /**
+     * To be called from data reset code only,
+     * do not use in tests.
+     * @return void
+     */
+    public function reset() {
+        parent::reset();
+    }
+
+    public function create_backup_restore_entry($userid, $courseid,$categoryid){
         global $DB, $CFG;
         require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/locallib.php');
         $datas = new stdClass();
@@ -47,7 +56,7 @@ class block_my_external_backup_restore_courses_generator extends testing_block_g
 
     }
 
-    public function update_backup_restore_entry($record) {
+    public function update_backup_restore_entry($record){
         global $DB;
         $DB->update_record('block_external_backuprestore', $record);
         return $record;

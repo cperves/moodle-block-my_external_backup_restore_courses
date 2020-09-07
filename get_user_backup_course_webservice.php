@@ -51,6 +51,7 @@ require_capability('block/my_external_backup_restore_courses:can_retrieve_course
 // Check the service allows file download.
 $enabledfiledownload = (int) ($authenticationinfo['service']->downloadfiles);
 if (empty($enabledfiledownload)) {
+      error_log('Web service file downloading must be enabled in external service settings');
     throw new webservice_access_exception('Web service file downloading must be enabled in external service settings');
 }
 

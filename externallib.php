@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * block_my_external_backup_restore_courses webservice externallib
+ * Folder plugin version information
  *
  * @package
  * @subpackage
@@ -97,11 +97,11 @@ class block_my_external_backup_restore_courses_external extends external_api {
         // Create return value.
         $coursesinfo = array();
         foreach ($usercourses as $usercourse) {
-            $roleids = $DB->get_records_list('role', 'shortname', $roles);
+            $roleids = $DB->get_records_list('role', 'shortname',$roles);
             $concernedusers = array();
-            foreach ($roleids as $roleid) {
+            foreach($roleids as $roleid){
                 $usersrecord = get_role_users($roleid->id, context_course::instance($usercourse->id, false));
-                foreach ($usersrecord as $userrecord) {
+                foreach($usersrecord as $userrecord){
                     $concernedusers[$userrecord->username] = $userrecord->username;
                 }
             }
@@ -117,7 +117,7 @@ class block_my_external_backup_restore_courses_external extends external_api {
             $courseinfo['groupmode'] = $usercourse->groupmode;
             $courseinfo['groupmodeforce'] = $usercourse->groupmodeforce;
             $courseinfo['categoryidentifier'] = $usercourse->categoryidentifier;
-            $courseinfo['concernedusers'] = implode(",", $concernedusers);
+            $courseinfo['concernedusers'] = implode(",",$concernedusers);
             $coursesinfo[] = $courseinfo;
         }
 
@@ -128,7 +128,7 @@ class block_my_external_backup_restore_courses_external extends external_api {
         return new external_function_parameters(
             array(
                 'username' => new external_value(PARAM_TEXT, ''),
-                'concernedroles' => new external_value(PARAM_TEXT, ''),
+                'concernedroles' => new external_value(PARAM_TEXT,''),
             )
         );
     }
