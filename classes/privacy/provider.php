@@ -59,27 +59,38 @@ class provider implements
         $collection->add_external_location_link(
                 'remote.moodle',
                 [
-                        'externalcourseid' => 'privacy:metadata:blocks_my_external_backup_restore_courses:remote_moodle:externalcourseid'
+                        'externalcourseid' =>
+                                'privacy:metadata:blocks_my_external_backup_restore_courses:remote_moodle:externalcourseid'
                 ],
                 'privacy:metadata:blocks_my_external_backup_restore_courses:remote_moodle'
         );
-        //no files stored since archive files are deleted in current moodle
+        // No files stored since archive files are deleted in current moodle.
         $collection->add_subsystem_link('core_enrol', [], 'privacy:metadata:core_enrol');
         $collection->add_database_table('block_external_backuprestore',
-                [
-                        'userid' => 'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:userid',
-                        'externalcourseid' => 'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalcourseid',
-                        'externalcoursename' => 'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalcoursename',
-                        'externalmoodleurl' => 'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalmoodleurl',
-                        'externalmoodletoken' => 'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalmoodletoken',
-                        'internalcategory' => 'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:internalcategory',
-                        'status' => 'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:status',
-                        'courseid' => 'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:courseid',
-                        'timecreated' => 'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:timecreated',
-                        'timemodified' => 'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:timemodified',
-                        'timescheduleprocessed' => 'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:timescheduleprocessed',
-                ],
-                'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore'
+            [
+                'userid' => 'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:userid',
+                'externalcourseid' =>
+                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalcourseid',
+                'externalcoursename' =>
+                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalcoursename',
+                'externalmoodleurl' =>
+                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalmoodleurl',
+                'externalmoodletoken' =>
+                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalmoodletoken',
+                'internalcategory' =>
+                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:internalcategory',
+                'status' =>
+                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:status',
+                'courseid' =>
+                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:courseid',
+                'timecreated' =>
+                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:timecreated',
+                'timemodified' =>
+                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:timemodified',
+                'timescheduleprocessed' =>
+                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:timescheduleprocessed'
+            ],
+            'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore'
         );
 
         return $collection;
@@ -92,12 +103,14 @@ class provider implements
      * @return  contextlist   $contextlist  The contextlist containing the list of contexts used in this plugin.
      */
     public static function get_contexts_for_userid(int $userid) : contextlist {
-        //store datas in system and course context
-        //since enrolment is a subsystem link does not return user enrolments in course
-        $contextlist =  new contextlist();
+        // Store datas in system and course context.
+        // Since enrolment is a subsystem link does not return user enrolments in course.
+        $contextlist = new contextlist();
         $contextlist->add_user_context($userid);
-        //ad linked course context
-        $sql = 'select ctx.id from {block_external_backuprestore} beb inner join {context} ctx on ctx.instanceid=beb.courseid and ctx.contextlevel=:coursecontext where userid=:userid and beb.courseid is not null';
+        // Add linked course context.
+        $sql = 'select ctx.id from {block_external_backuprestore} beb
+                    inner join {context} ctx on ctx.instanceid=beb.courseid and ctx.contextlevel=:coursecontext
+                    where userid=:userid and beb.courseid is not null';
         $params = [
             'coursecontext' => CONTEXT_COURSE,
             'userid' => $userid
@@ -115,18 +128,18 @@ class provider implements
         global $DB;
         $context = $userlist->get_context();
         if ($context instanceof \context_user or $context instanceof \context_course) {
-            if($context instanceof \context_user){
+            if ($context instanceof \context_user) {
                 $sql = 'select beb.userid as userid from {block_external_backuprestore} beb where beb.userid=:userid';
                 $params = [
                         'userid' => $context->instanceid
                 ];
                 $userlist->add_from_sql('userid', $sql, $params);
             }
-            if($context instanceof \context_course){
+            if ($context instanceof \context_course) {
                 $sql = 'select beb.userid as userid from {block_external_backuprestore} beb where beb.courseid=:courseid';
             }
             $params = [
-                    'courseid'=>$context->instanceid
+                    'courseid' => $context->instanceid
             ];
             $userlist->add_from_sql('userid', $sql, $params);
         }
@@ -139,32 +152,37 @@ class provider implements
      */
     public static function export_user_data(approved_contextlist $contextlist) {
         global $DB;
-        //sanitize contexts
+        // Sanitize contexts.
         $aprovedcontextlist = self::validate_contextlist_contexts($contextlist, [CONTEXT_USER, CONTEXT_COURSE]);
-        if(empty($aprovedcontextlist)){
+        if (empty($aprovedcontextlist)) {
             return;
         }
         $userid = $contextlist->get_user()->id;
         $entries = array();
-        //return database entries
-        foreach($aprovedcontextlist as $approvedcontext){
-            if($approvedcontext instanceof \context_user){
-                $entries = $DB->get_records('block_external_backuprestore',array('userid' => $approvedcontext->instanceid));
+        // Return database entries.
+        foreach ($aprovedcontextlist as $approvedcontext) {
+            if ($approvedcontext instanceof \context_user) {
+                $entries = $DB->get_records('block_external_backuprestore', array('userid' => $approvedcontext->instanceid));
             }
-            if($approvedcontext instanceof \context_course){
+            if ($approvedcontext instanceof \context_course) {
                 $params = array(
                         'courseid' => $approvedcontext->instanceid,
                         'userid' => $userid
                 );
-                $entries = $DB->get_records('block_external_backuprestore',$params);
+                $entries = $DB->get_records('block_external_backuprestore', $params);
             }
-            if(!empty($entries)){
-                writer::with_context($approvedcontext)->export_data([get_string('pluginname','block_my_external_backup_restore_courses')],(object)['restore_course_records'=>$entries]);
+            if (!empty($entries)) {
+                writer::with_context($approvedcontext)->export_data(
+                        [
+                                get_string('pluginname', 'block_my_external_backup_restore_courses')
+                        ],
+                        (object)['restore_course_records' => $entries]
+                );
             }
         }
 
-        //ca,'t be sure that enrolment was triggered by this plugin + can retrieve course enrolment through other report
-        //coursecontext : need to return course enrolment database entries if restored course context
+        // Can't be sure that enrolment was triggered by this plugin + can retrieve course enrolment through other report.
+        // Coursecontext : need to return course enrolment database entries if restored course context.
     }
 
     /**
@@ -174,13 +192,20 @@ class provider implements
      */
     public static function delete_data_for_all_users_in_context(\context $context) {
         global $DB;
-        //can't remove enrolment since can\'t be sure it comes from
-        //can't remove inprogress
-        if($context instanceof \context_user){
-            $DB->delete_records_select('block_external_backuprestore', 'userid=:userid and status <> :status',array('userid'=> $context->instanceid, 'status' => \block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS));
+        // Can't remove enrolment since can\'t be sure it comes from.
+        if ($context instanceof \context_user) {
+            $DB->delete_records_select('block_external_backuprestore', 'userid=:userid and status <> :status',
+                    array('userid' => $context->instanceid,
+                            'status' => \block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS
+                    )
+            );
         }
-        if($context instanceof \context_course){
-            $DB->delete_records_select('block_external_backuprestore', 'courseid=:courseid and status <> :status',array('courseid'=> $context->instanceid, 'status' => \block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS));
+        if ($context instanceof \context_course) {
+            $DB->delete_records_select('block_external_backuprestore', 'courseid=:courseid and status <> :status',
+                    array('courseid' => $context->instanceid,
+                            'status' => \block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS
+                    )
+            );
         }
     }
 
@@ -197,11 +222,19 @@ class provider implements
 
         $userid = $contextlist->get_user()->id;
         foreach ($contextlist->get_contexts() as $context) {
-            if($context instanceof \context_user){
-                $DB->delete_records_select('block_external_backuprestore', 'userid=:userid and status <> :status',array('userid'=> $context->instanceid, 'status' => \block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS));
+            if ($context instanceof \context_user) {
+                $DB->delete_records_select('block_external_backuprestore', 'userid=:userid and status <> :status',
+                        array('userid' => $context->instanceid,
+                                'status' => \block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS
+                        )
+                );
             }
-            if($context instanceof \context_course){
-                $DB->delete_records_select('block_external_backuprestore', 'courseid=:courseid and status <> :status',array('courseid'=> $context->instanceid, 'status' => \block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS));
+            if ($context instanceof \context_course) {
+                $DB->delete_records_select('block_external_backuprestore', 'courseid=:courseid and status <> :status',
+                        array('courseid' => $context->instanceid,
+                                'status' => \block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS
+                        )
+                );
             }
         }
 
@@ -224,8 +257,9 @@ class provider implements
                                 'status' => \block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS));
             }
             if ($context instanceof \context_course) {
-                $DB->delete_records_select('block_external_backuprestore', 'courseid=:courseid and status <> :status and userid=:userid',
-                        array('courseid' => $context->instanceid, 'userid'=>$user->id,
+                $DB->delete_records_select('block_external_backuprestore',
+                        'courseid=:courseid and status <> :status and userid=:userid',
+                        array('courseid' => $context->instanceid, 'userid' => $user->id,
                                 'status' => \block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS));
             }
         }

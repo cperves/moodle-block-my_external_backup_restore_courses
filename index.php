@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Folder plugin version information
+ * block my_external_backup_restore_courses index page
  *
  * @package
  * @subpackage
@@ -59,9 +59,12 @@ echo $OUTPUT->box_end();
 $systemcontext = context_system::instance();
 // External cateory parameters.
 $config = get_config('block_my_external_backup_restore_courses');
-$role = $DB->get_record('role', array('id'=>$config->enrollrole));
-if(!$role){
-    print_error(get_string('cantenrollocourserolex', 'block_my_external_backup_restore_courses',$config->enrollrole));
+$role = $DB->get_record('role', array('id' => $config->enrollrole));
+if (!$role) {
+    print_error(get_string('cantenrollocourserolex',
+            'block_my_external_backup_restore_courses',
+            $config->enrollrole
+    ));
 }
 
 $restorecourseinoriginalcategory = $config->restorecourseinoriginalcategory;
@@ -72,7 +75,8 @@ $defaultcategoryid = $config->defaultcategory;
 $externalmoodlescfg = $config->external_moodles;
 $onlyoneremoteinstance = boolval($config->onlyoneremoteinstance);
 // Formatted : domainname1,token1;domainname2;token2;...
-$wsparams = array('username' => $USER->username, 'concernedroles'=>implode(",",block_my_external_backup_restore_courses_tools::getConcernedRolesShortname()));
+$wsparams = array('username' => $USER->username,
+        'concernedroles' => implode(",", block_my_external_backup_restore_courses_tools::get_concerned_roles_shortname()));
 // Check if plugin is correcly configured.
 if (empty($defaultcategoryid) ||
     ($restorecourseinoriginalcategory == 1
@@ -86,12 +90,12 @@ if (empty($defaultcategoryid) ||
 // Forms paramteters.
 $submit = optional_param('submit', null, PARAM_TEXT);
 $enrolltocourse = optional_param('enrolltocourse', null, PARAM_TEXT);
-$enrolltocourseid =  optional_param('enrolltocourseid', null, PARAM_INT);
+$enrolltocourseid = optional_param('enrolltocourseid', null, PARAM_INT);
 $selectedcourses = optional_param_array('selectedcourses', null, PARAM_RAW);
 $externalmoodleurl = optional_param('externalmoodleurl', null, PARAM_URL);
 $externalmoodletoken  = optional_param('externalmoodletoken', null, PARAM_TEXT);
 $allcourses  = optional_param_array('allcourses', null, PARAM_RAW);
-//error message
+// Error message.
 $errormsg = '';
 if ($submit) {
     if (isset($allcourses)) {
@@ -112,23 +116,25 @@ if ($submit) {
                     $datas->timecreated = time();
                     $DB->insert_record('block_external_backuprestore', $datas);
                 } else {
-                    // Update
-                    // only in case of !$onlyoneremoteinstance from performed status to scheduled or if changing category
+                    // Update.
+                    // Only in case of !$onlyoneremoteinstance from performed status to scheduled or if changing category.
                     $datas = $dbinfo;
                     $neworiginalcategory = optional_param('originalcategory_'.$selectedcourse, 0, PARAM_INT);
                     $currentoriginalstatus = $datas->status;
 
-                    // change status only of !onlyremoteinstance && status from performed to scheduled
-                    if ($datas->status == block_my_external_backup_restore_courses_tools::STATUS_PERFORMED && !$onlyoneremoteinstance) {
+                    // Change status only of !onlyremoteinstance && status from performed to scheduled.
+                    if ($datas->status == block_my_external_backup_restore_courses_tools::STATUS_PERFORMED
+                            && !$onlyoneremoteinstance) {
                         $datas->status = block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED;
                     }
-                    //update only if
-                    // category changed and status scheduled
-                    //or status changed from performed to scheduled and !onlyoneremoteinstance
-                    if ($datas->internalcategory != $neworiginalcategory && $currentoriginalstatus == block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED
+                    // Update only ifcategory changed and status scheduled ...
+                    // Or status changed from performed to scheduled and !onlyoneremoteinstance.
+                    if ($datas->internalcategory != $neworiginalcategory
+                            && $currentoriginalstatus == block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED
                         || (
                             $currentoriginalstatus == block_my_external_backup_restore_courses_tools::STATUS_PERFORMED
-                            && $datas->status == block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED && !$onlyoneremoteinstance
+                            && $datas->status == block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED
+                            && !$onlyoneremoteinstance
                         )
                     ) {
                         $datas->timemodified = time();
@@ -157,32 +163,32 @@ if ($submit) {
         }
     }
 }
-if($config->enrollbutton && $enrolltocourse){
-    $coursetoenroll = $DB->get_record('course', array('id'=>$enrolltocourseid));
-    if(!$coursetoenroll){
+if ($config->enrollbutton && $enrolltocourse) {
+    $coursetoenroll = $DB->get_record('course', array('id' => $enrolltocourseid));
+    if (!$coursetoenroll) {
         $errormsg .= get_string('coursenotfound', 'block_my_external_backup_restore_courses');
     }
     $enrolinstances = enrol_get_instances($enrolltocourseid, false);
-    //check there's a manual instance
+    // Check there's a manual instance.
     $hasmanualenrol = false;
-    $manualenrolinstance;
-    foreach($enrolinstances as $key => $enrolinstance){
-        if($enrolinstance->enrol == 'manual'){
+    $manualenrolinstance = null;
+    foreach ($enrolinstances as $key => $enrolinstance) {
+        if ($enrolinstance->enrol == 'manual') {
             $hasmanualenrol = true;
             $manualenrolinstance = $enrolinstance;
             break;
         }
     }
-    if(!$hasmanualenrol){
+    if (!$hasmanualenrol) {
         $errormsg .= get_string('nomanualenrol', 'block_my_external_backup_restore_courses');
     }
-    if(empty($errormsg)){
+    if (empty($errormsg)) {
         $enrolmanualplugin = enrol_get_plugin('manual');
-        $enrolmanualplugin->enrol_user($enrolinstance, $USER->id,$role->id);
+        $enrolmanualplugin->enrol_user($enrolinstance, $USER->id, $role->id);
     }
 
 }
-if(!empty($errormsg)){
+if (!empty($errormsg)) {
     echo html_writer::start_div('error');
     echo $errormsg;
     echo html_writer::end_div();
@@ -247,7 +253,7 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                         array('type' => 'hidden', 'name' => 'externalmoodleurl', 'value' => $domainname));
                     echo html_writer::empty_tag('input',
                         array('type' => 'hidden', 'name' => 'externalmoodletoken', 'value' => $token));
-                    if($config->enrollbutton){
+                    if ($config->enrollbutton) {
                         echo html_writer::empty_tag('input',
                                 array('type' => 'hidden', 'id' => 'enrolltocourseid', 'name' => 'enrolltocourseid', 'value' => ''));
                     }
@@ -262,13 +268,13 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                     }
                     $coursetable->head[] = get_string('status');
                     $coursetable->head[] = get_string('nextruntime', 'block_my_external_backup_restore_courses');
-                    if($onlyoneremoteinstance){
+                    if ($onlyoneremoteinstance) {
                         $coursetable->head[] = get_string('executiontimemixed', 'block_my_external_backup_restore_courses');
-                    }else{
+                    } else {
                         $coursetable->head[] = get_string('executiontimeyourself', 'block_my_external_backup_restore_courses');
                         $coursetable->head[] = get_string('executiontimebyothers', 'block_my_external_backup_restore_courses');
                     }
-                    if($config->enrollbutton){
+                    if ($config->enrollbutton) {
                         $coursetable->head[] = get_string('enrollbuttonlabel', 'block_my_external_backup_restore_courses');
                     }
                 }
@@ -278,7 +284,10 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                         $scheduledinfo = $DB->get_record('block_external_backuprestore',
                             array('userid' => $USER->id, 'externalcourseid' => $course->id, 'externalmoodleurl' => $domainname));
 
-                        $scheduledinfobyotherusersinfos = block_my_external_backup_restore_courses_tools::externalCourseRestoredOrOnWayByOtherUsers($course->id, $domainname, $USER->id);
+                        $scheduledinfobyotherusersinfos =
+                                block_my_external_backup_restore_courses_tools::external_course_restored_or_on_way_by_other_users(
+                                        $course->id, $domainname, $USER->id
+                                );
                         $scheduledinfobyotherusers = !empty($scheduledinfobyotherusersinfos);
                                 // Original category informations.
                         $originalcategory = false;
@@ -300,32 +309,63 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                             array('type' => 'hidden', 'name' => 'allcourses[]', 'value' => $course->id));
                         echo html_writer::empty_tag('input',
                             array('type' => 'hidden', 'name' => 'coursename_'.$course->id, 'value' => $course->fullname));
-                        $externalcourseurl = new moodle_url($domainname.'/course/view.php', array('id'=>$course->id));
+                        $externalcourseurl = new moodle_url($domainname.'/course/view.php', array('id' => $course->id));
                         // Preparing html table.
                         $tablerow = new html_table_row();
                         $coursetablecell = new html_table_cell();
-                        $coursetablecell->text ='';
-                                if(has_capability('block/my_external_backup_restore_courses:can_see_external_course_link', $context)){
-                                    $coursetablecell->text.= html_writer::start_tag('a', array('href'=>$externalcourseurl->out(), 'target'=>'_blank'));
-                                }
-                                $coursetablecell->text .= get_string('courselabel','block_my_external_backup_restore_courses',$course);
-                                if(has_capability('block/my_external_backup_restore_courses:can_see_external_course_link', $context)) {
-                                    $coursetablecell->text .= html_writer::end_tag('a');
-                                }
+                        $coursetablecell->text = '';
+                        if (has_capability('block/my_external_backup_restore_courses:can_see_external_course_link',
+                            $context)
+                        ) {
+                            $coursetablecell->text .= html_writer::start_tag('a',
+                                    array('href' => $externalcourseurl->out(),
+                                            'target' => '_blank')
+                            );
+                        }
+                        $coursetablecell->text .= get_string('courselabel',
+                                'block_my_external_backup_restore_courses',
+                                $course
+                        );
+                        if (has_capability('block/my_external_backup_restore_courses:can_see_external_course_link',
+                                $context)
+                        ) {
+                            $coursetablecell->text .= html_writer::end_tag('a');
+                        }
                         $selecttablecell = new html_table_cell();
                         $attr = array();
                         $selecttablecell->text = '';
                         if (
                             ($onlyoneremoteinstance &&
-                                    ($scheduledinfobyotherusers || ($scheduledinfo && $scheduledinfo->status != block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED)))
+                                    ($scheduledinfobyotherusers ||
+                                            ($scheduledinfo &&
+                                                    $scheduledinfo->status !=
+                                                    block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED
+                                            )
+                                    ))
                             ||
                             (!$onlyoneremoteinstance
-                                    && (
-                                        ($scheduledinfo && ($scheduledinfo->status == block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS || $scheduledinfo->status == block_my_external_backup_restore_courses_tools::STATUS_ERROR))
+                                && (
+                                        (
+                                        $scheduledinfo &&
+                                            ($scheduledinfo->status ==
+                                                    block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS
+                                                ||
+                                                $scheduledinfo->status ==
+                                                block_my_external_backup_restore_courses_tools::STATUS_ERROR
+                                            )
+                                        )
                                         ||
                                         (
-                                                $scheduledinfobyotherusers && block_my_external_backup_restore_courses_tools::arrayContainsObjectWithProperties($scheduledinfobyotherusersinfos, 'status',array(block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED , block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS, block_my_external_backup_restore_courses_tools::STATUS_ERROR))
-                                         )
+                                            $scheduledinfobyotherusers &&
+                                            block_my_external_backup_restore_courses_tools::array_contains_object_with_properties(
+                                                    $scheduledinfobyotherusersinfos,
+                                                    'status',
+                                                    array(block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED ,
+                                                            block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS,
+                                                            block_my_external_backup_restore_courses_tools::STATUS_ERROR
+                                                    )
+                                            )
+                                        )
                                     )
                             )
                         ) {
@@ -334,29 +374,38 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                             if ($scheduledinfo
                                 && $scheduledinfo->status != block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED
                                 && $scheduledinfo->status != block_my_external_backup_restore_courses_tools::STATUS_PERFORMED) {
-                                $selecttablecell->text.= html_writer::empty_tag('input',
+                                $selecttablecell->text .= html_writer::empty_tag('input',
                                     array('type' => 'hidden', 'name' => 'selectedcourses[]', 'value' => $course->id));
                             }
                         }
                         $selecttablecell->text .= html_writer::checkbox('selectedcourses[]', $course->id,
-                            $scheduledinfo && $scheduledinfo->status != block_my_external_backup_restore_courses_tools::STATUS_PERFORMED ?
-                                true : false,
+                            $scheduledinfo && $scheduledinfo->status !=
+                            block_my_external_backup_restore_courses_tools::STATUS_PERFORMED ? true : false,
                             '', $attr);
                         $categorytablecell = new html_table_cell();
                         $categorytablecell->text = '';
                         $attr = array();
-                        //TODO !onlyremoteinstance implementation
-                        $categorychecked = $scheduledinfo ? ($scheduledinfo->internalcategory != 0 ? true : false) : ($scheduledinfobyotheruserinfo ?($scheduledinfobyotheruserinfo->internalcategory != 0 ? true : false):false);
+                        // TODO !onlyremoteinstance implementation.
+                        $categorychecked = $scheduledinfo ? ($scheduledinfo->internalcategory != 0 ? true : false) :
+                                ($scheduledinfobyotherusersinfos ?
+                                        ($scheduledinfobyotherusersinfos->internalcategory != 0 ? true : false)
+                                        : false
+                                );
                         if (!$originalcategory
                             || (
-                                $scheduledinfo && $scheduledinfo->status != block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED
+                                $scheduledinfo && $scheduledinfo->status
+                                != block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED
                             )
                         ) {
                             $attr['disabled'] = 'true';
-                            if($categorychecked){
-                                //add input hidden since checkbox is disabled
+                            if ($categorychecked) {
+                                // Add input hidden since checkbox is disabled.
                                 $categorytablecell->text .= html_writer::empty_tag('input',
-                                        array('type' => 'hidden', 'name' => 'originalcategory_'.$course->id, 'value' => $course->id));
+                                        array('type' => 'hidden',
+                                                'name' => 'originalcategory_'.$course->id,
+                                                'value' => $course->id
+                                        )
+                                );
                             }
                         }
                         $categorytablecell->text .= html_writer::checkbox('originalcategory_'.$course->id,
@@ -375,62 +424,86 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                         $executiontimebyotherstablecell->attributes['class'] = 'wrap';
                         $enrollbuttontablecell = new html_table_cell();
                         $enrollbuttontablecell->attributes['class'] = 'wrap';
-                        $nextruntime='';
-                        $executiontime ='';
+                        $nextruntime = '';
+                        $executiontime = '';
                         $status = '';
                         $enroltocoursearray = array();
-                        if($scheduledinfobyotherusers){
-                            //other schedule
+                        if ($scheduledinfobyotherusers) {
+                            // Other schedule.
                             $index = 0;
-                            $executiontimebyothers='';
+                            $executiontimebyothers = '';
                             $executiontimebyotherstablecell->text = '';
-                            $hasonestatusperformed=false;
-                            foreach($scheduledinfobyotherusersinfos as $scheduledinfobyotheruserinfo){
+                            $hasonestatusperformed = false;
+                            foreach ($scheduledinfobyotherusersinfos as $scheduledinfobyotheruserinfo) {
                                 $buttonclass = '';
-                                switch($scheduledinfobyotheruserinfo->status){
+                                switch($scheduledinfobyotheruserinfo->status) {
                                     case block_my_external_backup_restore_courses_tools::STATUS_ERROR:
-                                        $buttonclass='tag tag-danger';;
+                                        $buttonclass = 'tag tag-danger';;
                                         break;
                                     case block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS:
-                                        $buttonclass='tag tag-warning';
+                                        $buttonclass = 'tag tag-warning';
                                         break;
                                     case block_my_external_backup_restore_courses_tools::STATUS_PERFORMED:
-                                        $buttonclass='tag tag-success';
+                                        $buttonclass = 'tag tag-success';
                                         break;
                                     case block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED:
-                                        $buttonclass='tag tag-info';
+                                        $buttonclass = 'tag tag-info';
                                         break;
                                     default:
-                                        $buttonclass='';
+                                        $buttonclass = '';
                                         break;
                                 }
-                                if(!is_null($scheduledinfobyotheruserinfo->courseid) && ($scheduledinfobyotheruserinfo->status == block_my_external_backup_restore_courses_tools::STATUS_PERFORMED)){
-                                    $courseurl = new moodle_url('/course/view.php', array('id'=>$scheduledinfobyotheruserinfo->courseid));
-                                    $status = (empty($status)?''
-                                                    :'<br>').html_writer::start_tag('a',array('href'=> $courseurl->out(), 'class' => $buttonclass))
-                                                        .get_string('status_'.$scheduledinfobyotheruserinfo->status, 'block_my_external_backup_restore_courses')
+                                if (!is_null($scheduledinfobyotheruserinfo->courseid) &&
+                                        ($scheduledinfobyotheruserinfo->status ==
+                                                block_my_external_backup_restore_courses_tools::STATUS_PERFORMED)
+                                ) {
+                                    $courseurl = new moodle_url('/course/view.php',
+                                            array('id' => $scheduledinfobyotheruserinfo->courseid)
+                                    );
+                                    $status = (empty($status) ? '' : '<br>').
+                                            html_writer::start_tag('a',
+                                                    array('href' => $courseurl->out(), 'class' => $buttonclass))
+                                                        .get_string('status_'.$scheduledinfobyotheruserinfo->status,
+                                                    'block_my_external_backup_restore_courses')
                                                         .html_writer::end_tag('a');
-                                }else {
+                                } else {
                                     $status .= (empty($status) ? '' : '<br>')
-                                            .html_writer::start_tag('span', array('class'=> $buttonclass))
+                                            .html_writer::start_tag('span', array('class' => $buttonclass))
                                             .get_string('status_' . $scheduledinfobyotheruserinfo->status . '_byuser',
-                                                    'block_my_external_backup_restore_courses', $scheduledinfobyotheruserinfo)
+                                                    'block_my_external_backup_restore_courses',
+                                                    $scheduledinfobyotheruserinfo)
                                             .html_writer::end_tag('span');
                                 }
                                 $executiontimeinfo = new stdClass();
-                                $executiontimeinfo->firstname =$scheduledinfobyotheruserinfo->firstname;
-                                $executiontimeinfo->lastname =$scheduledinfobyotheruserinfo->lastname;
-                                if ($scheduledinfobyotheruserinfo->status == block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED) {
+                                $executiontimeinfo->firstname = $scheduledinfobyotheruserinfo->firstname;
+                                $executiontimeinfo->lastname = $scheduledinfobyotheruserinfo->lastname;
+                                if ($scheduledinfobyotheruserinfo->status ==
+                                        block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED) {
                                     $executiontimeinfo->executiontime = $scheduledtasknextrun;
                                     $nextruntime .= $scheduledtasknextrun;
-                                    $nextruntime = (empty($nextruntime)?'':'<br>').get_string('executioninformationbyuser', 'block_my_external_backup_restore_courses',$executiontimeinfo);
-                                }else if ($scheduledinfobyotheruserinfo->status == block_my_external_backup_restore_courses_tools::STATUS_ERROR
-                                        || $scheduledinfobyotheruserinfo->status == block_my_external_backup_restore_courses_tools::STATUS_PERFORMED || $scheduledinfobyotheruserinfo->status == block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS) {
-                                    $executiontimeinfo->executiontime = userdate($scheduledinfobyotheruserinfo->timescheduleprocessed);
-                                    $executiontime .= (empty($executiontime)?'':'<br>').get_string('executioninformationbyuser', 'block_my_external_backup_restore_courses',$executiontimeinfo);
-                                    if($scheduledinfobyotheruserinfo-> status == block_my_external_backup_restore_courses_tools::STATUS_PERFORMED && $config->enrollbutton){
-                                        //exclude without courseid
-                                        if(!is_null($scheduledinfobyotheruserinfo->courseid)) {
+                                    $nextruntime = (empty($nextruntime) ? '' : '<br>')
+                                            .get_string('executioninformationbyuser',
+                                                    'block_my_external_backup_restore_courses',
+                                                    $executiontimeinfo);
+                                } else if ($scheduledinfobyotheruserinfo->status ==
+                                        block_my_external_backup_restore_courses_tools::STATUS_ERROR
+                                        || $scheduledinfobyotheruserinfo->status ==
+                                            block_my_external_backup_restore_courses_tools::STATUS_PERFORMED
+                                        || $scheduledinfobyotheruserinfo->status ==
+                                            block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS
+                                ) {
+                                    $executiontimeinfo->executiontime =
+                                            userdate($scheduledinfobyotheruserinfo->timescheduleprocessed);
+                                    $executiontime .= (empty($executiontime) ? '' : '<br>')
+                                            .get_string('executioninformationbyuser',
+                                                    'block_my_external_backup_restore_courses',
+                                                    $executiontimeinfo);
+                                    if ($scheduledinfobyotheruserinfo->status ==
+                                            block_my_external_backup_restore_courses_tools::STATUS_PERFORMED
+                                            && $config->enrollbutton
+                                    ) {
+                                        // Exclude without courseid.
+                                        if (!is_null($scheduledinfobyotheruserinfo->courseid)) {
                                             $obj = new stdClass();
                                             $obj->courseid = $scheduledinfobyotheruserinfo->courseid;
                                             $obj->firstname = $scheduledinfobyotheruserinfo->firstname;
@@ -440,15 +513,18 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                                     }
                                 }
                                 $executiontimebyothers .= ($index > 0 ? '<br>' : '') .
-                                        get_string('executioninformationbyuser', 'block_my_external_backup_restore_courses',
+                                        get_string('executioninformationbyuser',
+                                                'block_my_external_backup_restore_courses',
                                                 $executiontimeinfo);
                             }
 
 
-                            if(!$onlyoneremoteinstance){
-                                $executiontimetablecell->text = (empty($executiontimetablecell->text)?'':'<br>').$executiontimebyothers;
+                            if (!$onlyoneremoteinstance) {
+                                $executiontimetablecell->text = (
+                                        empty($executiontimetablecell->text) ? '' : '<br>')
+                                        .$executiontimebyothers;
 
-                            }else {
+                            } else {
                                 $executiontimebyotherstablecell->text = $executiontimebyothers;
                             }
 
@@ -456,19 +532,22 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
 
                         }
 
-                        if($config->enrollbutton && count($enroltocoursearray)> 0){
+                        if ($config->enrollbutton && count($enroltocoursearray) > 0) {
                             $index = 0;
-                            foreach($enroltocoursearray as $courseid => $enroltocourseelt){
-                                //check if current user is already enrolled in course with enrollrole role
-                                $alreadyenrolled = block_my_external_backup_restore_courses_tools::enrol_get_courses_with_role($courseid, $USER->id, $role->id);
-                                if($alreadyenrolled){
+                            foreach ($enroltocoursearray as $courseid => $enroltocourseelt) {
+                                // Check if current user is already enrolled in course with enrollrole role.
+                                $alreadyenrolled =
+                                        block_my_external_backup_restore_courses_tools::enrol_get_courses_with_role($courseid,
+                                                $USER->id,
+                                                $role->id);
+                                if ($alreadyenrolled) {
                                     $enrollbuttontablecell->text .= ($index == 0 ? '' : '<br>');
                                     $enrollbuttontablecell->text .=
                                             get_string('alreadyenrolledincoursexuserx',
                                                     'block_my_external_backup_restore_courses',
                                                     $enroltocourseelt);
 
-                                }else {
+                                } else {
                                     $enrollbuttontablecell->text .= ($index == 0 ? '' : '<br>');
                                     $enrollbuttontablecell->text .= html_writer::tag('input', null,
                                             array('type' => 'submit', 'name' => 'enrolltocourse',
@@ -486,40 +565,53 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                         }
 
                         if ($scheduledinfo) {
-                            switch($scheduledinfo->status){
+                            switch($scheduledinfo->status) {
                                 case block_my_external_backup_restore_courses_tools::STATUS_ERROR:
-                                    $buttonclass='tag tag-danger';;
+                                    $buttonclass = 'tag tag-danger';;
                                     break;
                                 case block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS:
-                                    $buttonclass='tag tag-warning';
+                                    $buttonclass = 'tag tag-warning';
                                     break;
                                 case block_my_external_backup_restore_courses_tools::STATUS_PERFORMED:
-                                    $buttonclass='tag tag-success';
+                                    $buttonclass = 'tag tag-success';
                                     break;
                                 case block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED:
-                                    $buttonclass='tag tag-info';
+                                    $buttonclass = 'tag tag-info';
                                     break;
                                 default:
-                                    $buttonclass='';
+                                    $buttonclass = '';
                                     break;
                             }
-                            if(!is_null($scheduledinfo->courseid) && $scheduledinfo->status == block_my_external_backup_restore_courses_tools::STATUS_PERFORMED ){
-                                $courseurl = new moodle_url('/course/view.php', array('id'=>$scheduledinfo->courseid));
-                                $status = html_writer::start_tag('a',array('href'=> $courseurl->out(), 'class'=> $buttonclass)).get_string('status_'.$scheduledinfo->status, 'block_my_external_backup_restore_courses');html_writer::end_tag('a');
-                            }else{
-                               $status = html_writer::start_tag('span', array('class'=>$buttonclass))
-                                            .get_string('status_'.$scheduledinfo->status, 'block_my_external_backup_restore_courses')
+                            if (!is_null($scheduledinfo->courseid) && $scheduledinfo->status ==
+                                    block_my_external_backup_restore_courses_tools::STATUS_PERFORMED
+                            ) {
+                                $courseurl = new moodle_url('/course/view.php', array('id' => $scheduledinfo->courseid));
+                                $status = html_writer::start_tag('a',
+                                                array('href' => $courseurl->out(),
+                                                        'class' => $buttonclass)
+                                        ).get_string('status_'.$scheduledinfo->status,
+                                                'block_my_external_backup_restore_courses')
+                                        .html_writer::end_tag('a');
+                            } else {
+                                $status = html_writer::start_tag('span', array('class' => $buttonclass))
+                                            .get_string('status_'.$scheduledinfo->status,
+                                               'block_my_external_backup_restore_courses')
                                             .html_writer::end_tag('span');
                             }
                             $executiontimeinfo = new stdClass();
                             if ($scheduledinfo->status == block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED) {
                                 $executiontimeinfo->executiontime = $scheduledtasknextrun;
-                                $nextruntime = get_string('executioninformationyourself', 'block_my_external_backup_restore_courses',$executiontimeinfo);
-                            }
-                            else if ($scheduledinfo->status == block_my_external_backup_restore_courses_tools::STATUS_ERROR
-                                    || $scheduledinfo->status == block_my_external_backup_restore_courses_tools::STATUS_PERFORMED || $scheduledinfo->status == block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS) {
+                                $nextruntime = get_string('executioninformationyourself',
+                                        'block_my_external_backup_restore_courses',
+                                        $executiontimeinfo);
+                            } else if ($scheduledinfo->status == block_my_external_backup_restore_courses_tools::STATUS_ERROR
+                                    || $scheduledinfo->status == block_my_external_backup_restore_courses_tools::STATUS_PERFORMED
+                                    || $scheduledinfo->status == block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS
+                            ) {
                                 $executiontimeinfo->executiontime = userdate($scheduledinfo->timescheduleprocessed);
-                                $executiontime = get_string('executioninformationyourself', 'block_my_external_backup_restore_courses',$executiontimeinfo);
+                                $executiontime = get_string('executioninformationyourself',
+                                        'block_my_external_backup_restore_courses',
+                                        $executiontimeinfo);
                             }
                         }
 
@@ -533,10 +625,10 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                                 $statetablecell,
                                 $nextruntimetablecell,
                                 $executiontimetablecell);
-                        if(!$onlyoneremoteinstance){
+                        if (!$onlyoneremoteinstance) {
                             $tablecells[] = $executiontimebyotherstablecell;
                         }
-                        if($config->enrollbutton){
+                        if ($config->enrollbutton) {
                             $tablecells[] = $enrollbuttontablecell;
                         }
                         $tablerow->cells = $tablecells;
@@ -546,7 +638,10 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                 if ($courses) {
                     echo html_writer::table($coursetable);
                     echo html_writer::empty_tag('input',
-                        array('type' => 'submit', 'class' => 'btn btn-primary backuprestorelistsubmit', 'value' => get_string('submit'), 'name' => 'submit'));
+                        array('type' => 'submit', 'class' => 'btn btn-primary backuprestorelistsubmit',
+                                'value' => get_string('submit'),
+                                'name' => 'submit')
+                    );
                     echo html_writer::end_tag('form');
                     echo $OUTPUT->box_end();
                 }

@@ -94,7 +94,7 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configselect('block_my_external_backup_restore_courses/enrollrole',
             get_string('enrollrole', 'block_my_external_backup_restore_courses'),
             get_string('enrollrole_desc', 'block_my_external_backup_restore_courses'),
-            $defaultrole,$arrayofroles
+            $defaultrole, $arrayofroles
     ));
     $settings->add(new admin_setting_configcheckbox('block_my_external_backup_restore_courses/includeexternalurlinmail',
             get_string('includeexternalurlinmail', 'block_my_external_backup_restore_courses'),
