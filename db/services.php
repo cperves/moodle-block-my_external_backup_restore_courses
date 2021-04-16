@@ -34,7 +34,7 @@ $functions = array(
         'classpath' => 'blocks/my_external_backup_restore_courses/externallib.php',
         'description' => 'Get a zip of a given course for a given username',
         'type' => 'read',
-        'capabilities' => 'block/my_external_backup_restore_courses:can_see_backup_courses',
+        'capabilities' => 'block/my_external_backup_restore_courses:can_retrieve_courses',
     ),
     'block_my_external_backup_restore_courses_get_courses' => array(
         'classname' => 'block_my_external_backup_restore_courses_external',
@@ -44,4 +44,18 @@ $functions = array(
         'type' => 'read',
         'capabilities' => 'block/my_external_backup_restore_courses:can_see_backup_courses',
     ),
+);
+
+$services = array(
+    'Block my external backup restore courses web services' => array(
+        'functions' => array (  'block_my_external_backup_restore_courses_get_courses_zip',
+            'block_my_external_backup_restore_courses_get_courses',
+            'core_webservice_get_site_info'
+        ),
+        'requiredcapability' => '',
+        'restrictedusers' => 1,
+        'enabled' => 1,
+        'shortname' => 'wsblockmyexternalbakcuprestorecourses',
+        'downloadfiles' => 1
+    )
 );

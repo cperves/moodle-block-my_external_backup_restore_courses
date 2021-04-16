@@ -28,47 +28,50 @@ from moodle plugin repository
 Install block on blocks directory in course clients moodles and in each course servers moodle you need to connect to
 
 ### webservice settings
-On moodles that serves courses
-* create role for webservice
-  * add the protocol rest capability to this role webservice/rest:use
-  * add capabilility block/my_external_backup_restore_courses:can_retrieve_courses
-  * add capbility block/my_external_backup_restore_courses:can_see_backup_courses
- * Create a user account for webservice account 
-* assign role on system context for this newly created account
-* Under webservice administration :
-  * Under Site administration -> Plugins -> Web Services -> External services, add a new custom service
-    * check Enabled
-    * ckeck Authorised users only
-    * check  Can download files
-    * select capabilities
-      * block/my_external_backup_restore_courses:can_see_backup_courses
-      * block/my_external_backup_restore_courses:can_retrieve_courses
-  * once created add funtions to the new custom external service
-    * core_webservice_get_site_info
-    * block_my_external_backup_restore_courses_get_courses
-    * block_my_external_backup_restore_courses_get_courses_zip
-  *  add the webservice user account created previously to the authorized users of the new custom service
-  * Under Site administration -> Plugins -> Web Services -> Manage Tokens
-    * create a new token, restricted on your php server(s) for the custom external sservice previously created
-    * This token will be one to enter in the block parameters off block_my_external_backup_restore_courses
-    * for more security restrict webservice usage on IP
+#### On moodles that serves courses
+install by cli or manually
+##### install with cli command
+* Execute cli, that will install webservice, rôle and user
+* you will only need to generate token (see after)
+```bash
+/var/www/moodlepath/blocks/my_external_backup_restore_courses/cli/install_server.php
+```
+##### generate token 
+* Under Site administration -> Plugins -> Web Services -> Manage Tokens
+  * create a new token, restricted on your php server(s) for the custom external sservice previously created
+    * by cli user is named block_my_external_backup_restore_courses_user
+  * This token will be one to be entered in the block parameters of block_my_external_backup_restore_courses on client moodles.
+  * for more security restrict webservice usage on IP
 
 ### Block setting
 #### Essential settings
-##### On moodles that serve courses (moodle servers)
-
+##### On moodles that serve courses (moodle servers) and client moodles
 Under Plugins -> Blocks -> Restore courses from remote Moodles
 For each moodles you need to fill the following setting parameters
-
   * in my_external_backup_course | search_roles enter roles to include in course search simple quote delimited text shortname separated by commas
   * in my_external_backup_course | restorecourseinoriginalcategory activate the mode that enable to try to search the original category of a remote course 
   * in my_external_backup_course | categorytable the database table name where to find unique identifier information in order to search/find category, common for both client and server moodles
   * in my_external_backup_course | categorytable_foreignkey the database foreign key for categorytable
   * in my_external_backup_course | categorytable_categoryfield the database field in categorytable unique for a category and common for both client and server moodles
-
+#### Cli install version
+* for moodle version 3.9 and above
+* the following commands are the ones for traditional moodles
+```bash
+php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=restorecourseinoriginalcategory --set=1
+php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=search_roles --set=editingteacher
+php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=categorytable --set=course_categories
+php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=categorytable_foreignkey --set=id
+php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=categorytable_categoryfield --set=idnumber
+```
 ##### On course clients moodles
   * in my_external_backup_course | defaultcategory the categoryid where the course will be restored by default, users that restore must have capability to moodle/course:create
   * in my_external_backup_course | externalmoodles formatted list of course servers moodles formatted as moodle_url1,token_compte_webservice_moodle_externe1;moodle_url2,token_compte_webservice_moodle_externe2;...
+###### Cli install version
+* for moodle version 3.9 and above
+```bash
+php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=defaultcategory --set=<idnumber>
+php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=externalmoodles --set=<moodles separated by ;>
+```
 
 ###### Cron setting 
 On Site administration -> Server -> Scheduled tasks
@@ -100,6 +103,7 @@ On Site administration -> Server -> Scheduled tasks
 ### repository option
 * In Site administration -> Plugins -> Blocks -> Restore courses from remote Moodles
 * block_my_external_backup_restore_courses | authorizeremoterepositoryrestore : enable to restore not local files to be restored
+* block_my_external_backup_restore_courses | repositorytypestorestore : named here explicitely concerned repositories
 
 ### Restriction
 * In Site administration -> Plugins -> Blocks -> Restore courses from remote Moodles

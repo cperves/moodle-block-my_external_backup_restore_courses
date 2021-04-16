@@ -32,6 +32,8 @@ class block_my_external_backup_restore_courses_tools{
     const STATUS_INPROGRESS = 1;
     const STATUS_PERFORMED = 2;
     const STATUS_ERROR = -1;
+    public const BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE = 'block_my_external_backup_restore_courses_ws';
+    public const BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_DEFAULT_USER = 'block_my_external_backup_restore_courses_user';
 
     public static function  del_tree   ($dir) {
         $files = array_diff(scandir($dir), array('.', '..'));
@@ -335,6 +337,54 @@ class block_my_external_backup_restore_courses_tools{
             }
         }
         return false;
+    }
+
+    public static function install_webservice_moodle_server() {
+        global $CFG, $DB;
+        require_once($CFG->dirroot.'/webservice/lib.php');
+        $systemcontext = context_system::instance();
+        $rolerecord = $DB->get_record('role', array('shortname' => self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE));
+        $wsroleid = 0;
+        if ($rolerecord) {
+            $wsroleid = $rolerecord->id;
+            cli_writeln('role '.self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE.' already exists, we\'ll use it');
+        } else {
+            $wsroleid = create_role(self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE,
+                self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE,
+                self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE);
+        }
+        assign_capability('block/my_external_backup_restore_courses:can_see_backup_courses', CAP_ALLOW,
+            $wsroleid, $systemcontext->id, true);
+        assign_capability('block/my_external_backup_restore_courses:can_retrieve_courses', CAP_ALLOW,
+            $wsroleid, $systemcontext->id, true);
+        // Allow role assignmrnt on system.
+        set_role_contextlevels($wsroleid, array(10 => 10));
+        $wsuser = $DB->get_record('user', array('username' => self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_DEFAULT_USER));
+        if (!$wsuser) {
+            $wsuser = create_user_record(self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_DEFAULT_USER, generate_password(20));
+            $wsuser->firstname = 'wsuser';
+            $wsuser->lastname = self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_DEFAULT_USER;
+            $wsuser->email = 'ws_dtas'.$CFG->noreplyaddress;
+            $DB->update_record('user', $wsuser);
+        } else {
+            cli_writeln('user '.self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_DEFAULT_USER.'already exists, we\'ll use it');
+        }
+        role_assign($wsroleid, $wsuser->id, $systemcontext->id);
+        $service = $DB->get_record('external_services', array('shortname' => 'wsblockmyexternalbakcuprestorecourses'));
+        // Assign user to webservice.
+        $webservicemanager = new webservice();
+        $serviceuser = new stdClass();
+        $serviceuser->externalserviceid = $service->id;
+        $serviceuser->userid = $wsuser->id;
+        $webservicemanager->add_ws_authorised_user($serviceuser);
+
+        $params = array(
+            'objectid' => $serviceuser->externalserviceid,
+            'relateduserid' => $serviceuser->userid
+        );
+        $event = \core\event\webservice_service_user_added::create($params);
+        $event->trigger();
+        return true;
     }
 
 
@@ -960,5 +1010,4 @@ class block_my_external_backup_restore_courses_task_error_list {
             }
         }
     }
-
 }

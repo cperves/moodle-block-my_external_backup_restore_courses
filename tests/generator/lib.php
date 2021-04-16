@@ -41,7 +41,7 @@ class block_my_external_backup_restore_courses_generator extends testing_block_g
         $datas->externalcoursename = 'mock_externalcoursename';
         $datas->status = block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED;
         $datas->timecreated = time();
-        $id = $DB->insert_record('block_external_backuprestore', $datas);;
+        $id = $DB->insert_record('block_external_backuprestore', $datas);
         $datas->id = $id;
         return $datas;
 
