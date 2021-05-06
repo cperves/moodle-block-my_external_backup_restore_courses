@@ -96,7 +96,7 @@ class block_my_external_backup_restore_courses_tools{
             && !empty($categorytableforeignkey) && !empty($categorytablecategoryfield)) {
             $categoryselect = ", ct.$categorytablecategoryfield as categoryidentifier ";
             $categoryjoin = " left join {".$categorytable."} ct on ct.$categorytableforeignkey=c.category ";
-            $categorywhere = " and ct.$categorytableforeignkey=c.category ";
+            $categorywhere = " and (ct.id is null or ct.$categorytableforeignkey=c.category) ";
         }
 
         // Guest account does not have any courses.
