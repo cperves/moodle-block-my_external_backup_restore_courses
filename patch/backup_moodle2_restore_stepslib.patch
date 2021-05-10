@@ -1,0 +1,80 @@
+--- /datas/dev/moodle/moodle_gitworkspaces/moodle39/moodle_org/backup/moodle2/restore_stepslib.php	2021-05-10 15:11:46.982242943 +0200
++++ /datas/dev/moodle/moodle_gitworkspaces/moodle39/moodle2_version/backup/moodle2/restore_stepslib.php	2021-05-10 14:54:46.841413387 +0200
+@@ -2013,7 +2013,9 @@
+         $params = array($this->get_restoreid(), $this->task->get_old_contextid(), 'course', 'legacy');
+ 
+         if ($DB->count_records_sql($sql, $params)) {
+-            $DB->set_field('course', 'legacyfiles', 2, array('id' => $this->get_courseid()));
++        	// UNISTRA DEV.
++            $DB->set_field('course', 'legacyfiles', 1, array('id' => $this->get_courseid()));
++            //END UNISTRA DEV
+             restore_dbops::send_files_to_pool($this->get_basepath(), $this->get_restoreid(), 'course',
+                 'legacy', $this->task->get_old_contextid(), $this->task->get_userid());
+         }
+@@ -5124,7 +5126,10 @@
+      * What to do when this step is executed.
+      */
+     protected function define_execution() {
+-        global $DB;
++        // UNISTRA DEV.
++        global $DB, $CFG;
++        require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/locallib.php');
++        //END UNISTRA DEV
+ 
+         $this->log('processing file aliases queue', backup::LOG_DEBUG);
+ 
+@@ -5147,7 +5152,9 @@
+                 continue;
+             }
+ 
++            // UNISTRA DEV.
+             if ($info->oldfile->repositorytype === 'local' or $info->oldfile->repositorytype === 'coursefiles') {
++            // END UNISTRA DEV.
+                 // Aliases to Server files and Legacy course files may refer to a file
+                 // contained in the backup file or to some existing file (if we are on the
+                 // same site).
+@@ -5248,7 +5255,9 @@
+                 // This is a reference to some external file such as in boxnet or dropbox.
+                 // If we are restoring to the same site, keep the reference untouched and
+                 // restore the alias as is.
+-                if ($this->task->is_samesite()) {
++                // UNISTRA DEV.
++                if ($this->task->is_samesite() or block_my_external_backup_restore_courses_tools::is_repository_authorized_to_restore($info->oldfile->repositorytype)) {
++                //End UNISTRA DEV
+                     $fs->create_file_from_reference($info->newfile, $repository->id, $info->oldfile->reference);
+                     $this->notify_success($info);
+                     continue;
+@@ -5277,6 +5286,9 @@
+     private function choose_repository(stdClass $info) {
+         global $DB, $CFG;
+         require_once($CFG->dirroot.'/repository/lib.php');
++        // UNISTRA DEV.
++        require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/locallib.php');
++        //END UNISTRA DEV
+ 
+         if ($this->task->is_samesite()) {
+             // We can rely on repository instance id.
+@@ -5310,7 +5322,9 @@
+ 
+             // Both Server files and Legacy course files repositories have a single
+             // instance at the system context to use. Let us try to find it.
+-            if ($info->oldfile->repositorytype === 'local' or $info->oldfile->repositorytype === 'coursefiles') {
++            // UNISTRA DEV.
++            if ($info->oldfile->repositorytype === 'local' or $info->oldfile->repositorytype === 'coursefiles' or block_my_external_backup_restore_courses_tools::is_repository_authorized_to_restore($info->oldfile->repositorytype)) {
++            // END UNISTRA DEV.
+                 $sql = "SELECT ri.id
+                           FROM {repository} r
+                           JOIN {repository_instances} ri ON ri.typeid = r.id
+@@ -5329,7 +5343,11 @@
+                     return null;
+                 }
+             }
+-
++            // UNISTRA DEV.
++            if(!block_my_external_backup_restore_courses_tools::IsRepositoryAuthorizedToRestore($info->oldfile->repositorytype)){
++                $this->notify_failure($info, 'remote repository not authorized for type '.$info->oldfile->repositorytype);
++            }
++            //End UNISTRA DEV
+             $this->cachereposbytype[$info->oldfile->repositorytype] = null;
+             return null;
+         }
