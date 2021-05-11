@@ -71,16 +71,6 @@ if ($hassiteconfig) {
             get_string('categorytable_categoryfield_desc', 'block_my_external_backup_restore_courses'),
             'idnumber'
     ));
-    $settings->add(new admin_setting_configcheckbox('block_my_external_backup_restore_courses/authorizeremoterepositoryrestore',
-            get_string('authorizeremoterepositoryrestore', 'block_my_external_backup_restore_courses'),
-            get_string('authorizeremoterepositoryrestore_desc', 'block_my_external_backup_restore_courses'),
-            0
-    ));
-    $settings->add(new admin_setting_configtext('block_my_external_backup_restore_courses/repositorytypestorestore',
-            get_string('repositorytypestorestore', 'block_my_external_backup_restore_courses'),
-            get_string('repositorytypestorestore_desc', 'block_my_external_backup_restore_courses'),
-            ''
-    ));
     $settings->add(new admin_setting_configcheckbox('block_my_external_backup_restore_courses/onlyoneremoteinstance',
             get_string('onlyoneremoteinstance', 'block_my_external_backup_restore_courses'),
             get_string('onlyoneremoteinstance_desc', 'block_my_external_backup_restore_courses'),

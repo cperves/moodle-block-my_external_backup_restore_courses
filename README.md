@@ -23,16 +23,6 @@ this plugin may not work in MNet environments fully because the username in that
 from moodle plugin repository
 
 ## Installation
-### Install patch to take external repository in charge
-* by default moodle does not restore external repository in course to prevent file breaking
-  * but you can enable this by installing following patch on your moodle version
-  * this is optional
-```shell
-patch -p1 /moodle_path/backup/moodle2/restore_stepslib.php < /moodlepath/patch/backup_moodle2_restore_stepslib.patch
-```
-* then through the plugin setting add the desired external repositories
-  * see repository option bellow
-
 ### Block installation
 Install block on blocks directory in course clients moodles and in each course servers moodle you need to connect to
 
@@ -108,11 +98,6 @@ On Site administration -> Server -> Scheduled tasks
 ### role
 * In Site administration -> Plugins -> Blocks -> Restore courses from remote Moodles
 * block_my_external_backup_restore_courses | search_roles : enable to change/add moodle role used to search remote courses to restore
-
-### repository option
-* In Site administration -> Plugins -> Blocks -> Restore courses from remote Moodles
-* block_my_external_backup_restore_courses | authorizeremoterepositoryrestore : enable to restore not local files to be restored
-* block_my_external_backup_restore_courses | repositorytypestorestore : named here explicitely concerned repositories
 
 ### Restriction
 * In Site administration -> Plugins -> Blocks -> Restore courses from remote Moodles
