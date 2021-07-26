@@ -119,7 +119,6 @@ $string['privacy:metadata:blocks_my_external_backup_restore_courses:block_extern
 $string['privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalcourseid'] = 'moodle remote courseid that will be/ was restored locally';
 $string['privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalcoursename'] = 'moodle remote coursename that will be/ was restored locally';
 $string['privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalmoodleurl'] = 'remote moodle url';
-$string['privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalmoodletoken'] = 'remote moodle auth token used by webservice to retrieve remote course datas.';
 $string['privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:internalcategory'] = 'category where the course will be restored';
 $string['privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:status'] = 'status of course restoration';
 $string['privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:courseid'] = 'local courseid of the restored course';

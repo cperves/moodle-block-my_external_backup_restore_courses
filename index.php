@@ -93,7 +93,6 @@ $enrolltocourse = optional_param('enrolltocourse', null, PARAM_TEXT);
 $enrolltocourseid = optional_param('enrolltocourseid', null, PARAM_INT);
 $selectedcourses = optional_param_array('selectedcourses', null, PARAM_RAW);
 $externalmoodleurl = optional_param('externalmoodleurl', null, PARAM_URL);
-$externalmoodletoken  = optional_param('externalmoodletoken', null, PARAM_TEXT);
 $allcourses  = optional_param_array('allcourses', null, PARAM_RAW);
 // Error message.
 $errormsg = '';
@@ -109,7 +108,6 @@ if ($submit) {
                     $datas->userid = $USER->id;
                     $datas->externalcourseid = $selectedcourse;
                     $datas->externalmoodleurl = $externalmoodleurl;
-                    $datas->externalmoodletoken = $externalmoodletoken;
                     $datas->internalcategory = optional_param('originalcategory_'.$selectedcourse, 0, PARAM_INT);
                     $datas->externalcoursename = optional_param('coursename_'.$selectedcourse, '', PARAM_TEXT);
                     $datas->status = block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED;
@@ -207,17 +205,12 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
         if (!empty($keyvalue)) {
             $keyvalue = explode(',', $keyvalue);
             $domainname = $keyvalue[0];
-            $token = $keyvalue[1];
-            $serveroptions = array();
-            $serveroptions['token'] = $token;
-            $serveroptions['domainname'] = $domainname;
             $validusername = true;
             $courses = array();
             try {
-                $sitename = block_my_external_backup_restore_courses_tools::external_backup_course_sitename($domainname, $token);
+                $sitename = block_my_external_backup_restore_courses_tools::external_backup_course_sitename($domainname);
                 try {
                     $courses = block_my_external_backup_restore_courses_tools::rest_call_external_courses_client($domainname,
-                        $token,
                         'block_my_external_backup_restore_courses_get_courses',
                         $wsparams);
                 } catch (block_my_external_backup_restore_courses_invalid_username_exception $uex) {
@@ -251,8 +244,6 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                     echo html_writer::start_tag('form', $attributes);
                     echo html_writer::empty_tag('input',
                         array('type' => 'hidden', 'name' => 'externalmoodleurl', 'value' => $domainname));
-                    echo html_writer::empty_tag('input',
-                        array('type' => 'hidden', 'name' => 'externalmoodletoken', 'value' => $token));
                     if ($config->enrollbutton) {
                         echo html_writer::empty_tag('input',
                                 array('type' => 'hidden', 'id' => 'enrolltocourseid', 'name' => 'enrolltocourseid', 'value' => ''));
@@ -334,6 +325,7 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                         $selecttablecell = new html_table_cell();
                         $attr = array();
                         $selecttablecell->text = '';
+                        $disabledline = false;
                         if (
                             ($onlyoneremoteinstance &&
                                     ($scheduledinfobyotherusers ||
@@ -369,6 +361,7 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                                     )
                             )
                         ) {
+                            $disabledline = true;
                             $attr['disabled'] = 'true';
                             // Input same hidden field to post selected value if selected.
                             if ($scheduledinfo
@@ -388,7 +381,8 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                         // TODO !onlyremoteinstance implementation.
                         $categorychecked = $scheduledinfo ? ($scheduledinfo->internalcategory != 0 ? true : false) :
                                 ($scheduledinfobyotherusersinfos ?
-                                        ($scheduledinfobyotherusersinfos->internalcategory != 0 ? true : false)
+                                        (property_exists($scheduledinfobyotherusers,'internalcategory')
+                                          && $scheduledinfobyotherusersinfos->internalcategory != 0 ? true : false)
                                         : false
                                 );
                         if (!$originalcategory
@@ -397,8 +391,10 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                                 != block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED
                             )
                         ) {
-                            $attr['disabled'] = 'true';
-                            if ($categorychecked) {
+                            if($disabledline) {
+                                $attr['disabled'] = 'true';
+                            }
+                            if ($originalcategory && $categorychecked) {
                                 // Add input hidden since checkbox is disabled.
                                 $categorytablecell->text .= html_writer::empty_tag('input',
                                         array('type' => 'hidden',
@@ -407,6 +403,9 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                                         )
                                 );
                             }
+                        }
+                        if(!$originalcategory) {
+                            $attr['disabled'] = 'true';
                         }
                         $categorytablecell->text .= html_writer::checkbox('originalcategory_'.$course->id,
                             $originalcategory ? $originalcategory->id : 0,

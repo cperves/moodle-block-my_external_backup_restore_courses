@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="blocks/my_external_backup_restore_courses/db" VERSION="20151027" COMMENT="XMLDB file for Moodle blocks/my_external_backup_restore_course"
+<XMLDB PATH="blocks/my_external_backup_restore_courses/db" VERSION="2020071900" COMMENT="XMLDB file for Moodle blocks/my_external_backup_restore_course"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -11,7 +11,6 @@
         <FIELD NAME="externalcourseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="externalcoursename" TYPE="char" LENGTH="254" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="externalmoodleurl" TYPE="char" LENGTH="256" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="externalmoodletoken" TYPE="char" LENGTH="128" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="internalcategory" TYPE="int" LENGTH="10" DEFAULT="0" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="status" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>

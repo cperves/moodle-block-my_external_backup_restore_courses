@@ -75,8 +75,6 @@ class provider implements
                      'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalcoursename',
                 'externalmoodleurl' =>
                      'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalmoodleurl',
-                'externalmoodletoken' =>
-                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalmoodletoken',
                 'internalcategory' =>
                      'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:internalcategory',
                 'status' =>

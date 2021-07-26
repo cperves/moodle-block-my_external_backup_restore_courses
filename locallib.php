@@ -66,10 +66,11 @@ class block_my_external_backup_restore_courses_tools{
         }
 
     }
-    public static function external_backup_course_sitename($domainname, $token) {
+    public static function external_backup_course_sitename($domainname) {
+        $token = self::get_external_moodle_token($domainname);
         $siteinfo = null;
         try {
-            $siteinfo = self::rest_call_external_courses_client($domainname, $token, 'core_webservice_get_site_info');
+            $siteinfo = self::rest_call_external_courses_client($domainname, 'core_webservice_get_site_info');
         } catch (Exception $e) {
             throw new Exception('site name can \'t be retrieved : '.$e->getMessage());
         }
@@ -212,12 +213,13 @@ class block_my_external_backup_restore_courses_tools{
         return $output;
     }
 
-    public static function rest_call_external_courses_client($domainname, $token, $functionname, $params=array(),
+    public static function rest_call_external_courses_client($domainname, $functionname, $params=array(),
                                                              $restformat='json', $method='get') {
         global $CFG;
         require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/locallib.php');
         require_once($CFG->dirroot.'/lib/filelib.php');
         require_once($CFG->dirroot.'/webservice/lib.php');
+        $token = self::get_external_moodle_token($domainname);
         $serverurl = $domainname . '/webservice/rest/server.php'. '?wstoken=' . $token . '&wsfunction='.$functionname;
         $curl = new curl;
         // Ff rest format == 'xml', then we do not add the param for backward compatibility with Moodle < 2.2.
@@ -240,22 +242,6 @@ class block_my_external_backup_restore_courses_tools{
         }
         return $resp;
     }
-    public static function get_authorized_repository_to_restore() {
-        $authorizedrepositories = array();
-        $config = get_config("block_my_external_backup_restore_courses");
-        if ($config->authorizeremoterepositoryrestore && !empty($config->repositorytypestorestore)) {
-            $repositorytypes = explode(';', $config->repositorytypestorestore);
-            foreach ($repositorytypes as $repositorytype) {
-                // Check repository exists and is activated.
-                $repositorytypeobj = repository::get_type_by_typename($repositorytype);
-                if (isset($repositorytypeobj) && $repositorytypeobj->get_visible()) {
-                    array_push($authorizedrepositories, $repositorytypeobj->get_typename());
-                }
-            }
-        }
-        return $authorizedrepositories;
-    }
-
     public static function get_formatted_concerned_roles_shortname() {
         $config = get_config("block_my_external_backup_restore_courses");
         $roles = $config->search_roles;
@@ -283,14 +269,6 @@ class block_my_external_backup_restore_courses_tools{
             $list[$index] = '\''.$element.'\'';
         }
         return implode($delimiter, $list);
-    }
-
-    public static function is_repository_authorized_to_restore($repositorytype) {
-        $authorizedrepositories = self::get_authorized_repository_to_restore();
-        if (in_array($repositorytype, $authorizedrepositories)) {
-            return true;
-        }
-        return false;
     }
 
     public static function external_course_restored_or_on_way_by_other_users($externalcourseid, $externalmoodleurl, $localuserid) {
@@ -387,7 +365,29 @@ class block_my_external_backup_restore_courses_tools{
         return true;
     }
 
+    public static function get_external_moodles_url_token(){
+        $externalmoodlescfg = get_config('block_my_external_backup_restore_courses', 'external_moodles');
+        $externalmoodlesurltoken = array();
+        if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
+            $externalmoodles = explode(';', $externalmoodlescfg);
+            foreach ($externalmoodles as $externalmoodle) {
+                $keyvalue = explode(',', $externalmoodle);
+                $domainname = $keyvalue[0];
+                if(!empty(trim($domainname))){
+                    $token = $keyvalue[1];
+                    if (array_key_exists($domainname, $externalmoodlesurltoken)) {
+                        print_error("Duplicate domainename/token detected for $domainname");
+                    }
+                    $externalmoodlesurltoken[$domainname] = $token;
+                }
+            }
+        }
+        return $externalmoodlesurltoken;
+    }
 
+    public static function get_external_moodle_token($domainname){
+        return self::get_external_moodles_url_token()[$domainname];
+    }
 }
 
 class block_my_external_backup_restore_courses_invalid_username_exception extends moodle_exception {
@@ -543,7 +543,7 @@ abstract class block_my_external_backup_restore_courses_task_helper{
     }
 }
 class block_my_external_backup_restore_courses_task{
-    private $task/*stdclass id, userid,externalcourseid,externalmoodleurl,externalmoodlesitename,externalmoodletoken,internalcategory,status*/ = null;
+    private $task/*stdclass id, userid,externalcourseid,externalmoodleurl,externalmoodlesitename,internalcategory,status*/ = null;
     private $taskerrors = array();
     public function __construct($task) {
         $this->task = $task;
@@ -560,7 +560,7 @@ class block_my_external_backup_restore_courses_task{
         $functionname = 'core_webservice_get_site_info';
         $params = array();
         $siteinfo = block_my_external_backup_restore_courses_tools::rest_call_external_courses_client(
-            $this->task->externalmoodleurl, $this->task->externalmoodletoken, $functionname,
+            $this->task->externalmoodleurl, $functionname,
             $params, $restformat = 'json', $method = 'post');
         $sitename = $siteinfo->sitename;
         if (empty($sitename)) {
@@ -575,8 +575,7 @@ class block_my_external_backup_restore_courses_task{
         $functionname = 'block_my_external_backup_restore_courses_get_courses_zip';
         $params = array('username' => $username, 'courseid' => $this->task->externalcourseid);
         $filereturned = block_my_external_backup_restore_courses_tools::rest_call_external_courses_client(
-            $this->task->externalmoodleurl, $this->task->externalmoodletoken,
-            $functionname, $params, $restformat = 'json', $method = 'post');
+            $this->task->externalmoodleurl, $functionname, $params, $restformat = 'json', $method = 'post');
         if (empty($filereturned)) {
             $this->taskerrors[] = new block_my_external_backup_restore_courses_task_error($this->task,
                 'file retrieve : no response');
@@ -585,7 +584,11 @@ class block_my_external_backup_restore_courses_task{
         // DOWNLOAD File.
         $url = $this->task->externalmoodleurl.'/blocks/my_external_backup_restore_courses/get_user_backup_course_webservice.php';
         // NOTE: normally you should get this download url from your previous call of core_course_get_contents().
-        $url .= '?token=' . $this->task->externalmoodletoken;
+        $token = block_my_external_backup_restore_courses_tools::get_external_moodle_token($this->task->externalmoodleurl);
+        if(!$token){
+            print_error("token not find for moodle url $url");
+        }
+        $url .= '?token=' . $token;
         // NOTE: in your client/app don't forget to attach the token to your download url.
         $url .= '&filerecordid='.$filereturned->filerecordid;
         // Serve file.
