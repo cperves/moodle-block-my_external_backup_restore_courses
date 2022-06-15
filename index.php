@@ -379,11 +379,12 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                         $categorytablecell->text = '';
                         $attr = array();
                         // TODO !onlyremoteinstance implementation.
+                        $defaultcategorychecked = $config->defaultcategorychecked;
                         $categorychecked = $scheduledinfo ? ($scheduledinfo->internalcategory != 0 ? true : false) :
                                 ($scheduledinfobyotherusersinfos ?
                                         (property_exists($scheduledinfobyotherusers,'internalcategory')
                                           && $scheduledinfobyotherusersinfos->internalcategory != 0 ? true : false)
-                                        : false
+                                        : ($originalcategory ? $defaultcategorychecked : false)
                                 );
                         if (!$originalcategory
                             || (
