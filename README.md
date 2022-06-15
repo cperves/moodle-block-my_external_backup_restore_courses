@@ -65,6 +65,7 @@ php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup
 ##### On course clients moodles
   * in my_external_backup_course | defaultcategory the categoryid where the course will be restored by default, users that restore must have capability to moodle/course:create
   * in my_external_backup_course | externalmoodles formatted list of course servers moodles formatted as moodle_url1,token_compte_webservice_moodle_externe1;moodle_url2,token_compte_webservice_moodle_externe2;...
+
 ###### Cli install version
 * for moodle version 3.9 and above
 ```bash
