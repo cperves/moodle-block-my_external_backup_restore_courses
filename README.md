@@ -5,14 +5,14 @@ this block must be installed in each moodle course clients and course servers in
 
 ## Features
   * enable a user to program course restoration where courses comes from external moodles
-  * possibility to find the original category based on unique category identifier threw plugin settings on database relation (user must hace moodle/course:create in the category context)
-  * restore cours in a default category (user must hace moodle/course:create in that context)
+  * possibility to find the original category based on unique category identifier threw plugin settings on database relation (user must have moodle/course:create in the category context unless noneedcoursecreate plugin setting is set to true)
+  * restore cours in a default category (user must have moodle/course:create in that context unless noneedcoursecreate plugin setting is set to true)
   * a scheduled task will launch remote backups and restorations of these courses
   * Log and messaging include to notify of succes or failure
   * possibilily to restrict to only one restoration by course
 
 ## Security warning
-* This plugin use a capability block/my_external_backup_restore_courses:can_retrieve_courses that enable webservice account to donload backup files of other users
+* This plugin use a capability block/ block/my_external_backup_restore_courses:viewmy_external_backup_restore_courses:can_retrieve_courses that enable webservice account to donload backup files of other users
 * To improve security it is strongly recommended to generate token with IPrestriction on server side IPs
 
 ## mnet warning usage
@@ -63,7 +63,7 @@ php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup
 php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=categorytable_categoryfield --set=idnumber
 ```
 ##### On course clients moodles
-  * in my_external_backup_course | defaultcategory the categoryid where the course will be restored by default, users that restore must have capability to moodle/course:create
+  * in my_external_backup_course | defaultcategory the categoryid where the course will be restored by default, users that restore must have capability to moodle/course:create (unless noneedcoursecreate plugin setting is set to true)
   * in my_external_backup_course | externalmoodles formatted list of course servers moodles formatted as moodle_url1,token_compte_webservice_moodle_externe1;moodle_url2,token_compte_webservice_moodle_externe2;...
 
 ###### Cli install version

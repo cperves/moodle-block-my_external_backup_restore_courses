@@ -485,14 +485,15 @@ abstract class block_my_external_backup_restore_courses_task_helper{
                     $taskcategorycontext = context_coursecat::instance($task->internalcategory);
                 }
             }
+            $noneedcoursecreate = get_config('block_my_external_backup_restore_courses', 'noneedcoursecreate');
             if ($task->internalcategory != 0 && ($taskcategorycontext == null
-                    || !has_capability('moodle/course:create', $taskcategorycontext, $task->userid))) {
+                    || (!$noneedcoursecreate && !has_capability('moodle/course:create', $taskcategorycontext, $task->userid)))) {
                 // Trying to check if ok in defaultcategory context.
                 $taskobject->add_error(get_string('cantrestorecourseincategorycontext',
                     'block_my_external_backup_restore_courses', $taskobject->get_lang_object()));
                 // Changing category.
                 $task->internalcategory = $defaultcategoryid;
-                if (!has_capability('moodle/course:create', $defaultcategorycontext, $task->userid)) {
+                if (!$noneedcoursecreate && !has_capability('moodle/course:create', $defaultcategorycontext, $task->userid)) {
                     $taskobject->add_error(get_string('cantrestorecourseindefaultcategorycontext',
                         'block_my_external_backup_restore_courses', $taskobject->get_lang_object()));
                     $taskobject->change_task_status(block_my_external_backup_restore_courses_tools::STATUS_ERROR);
@@ -500,7 +501,7 @@ abstract class block_my_external_backup_restore_courses_task_helper{
                     $errors->notify_errors();
                     continue;
                 }
-            } else if ($task->internalcategory == 0 && !has_capability('moodle/course:create',
+            } else if ($task->internalcategory == 0 && !$noneedcoursecreate && !has_capability('moodle/course:create',
                     $defaultcategorycontext, $task->userid)) {
                         $taskobject->add_error(get_string('cantrestorecourseindefaultcategorycontext',
                             'block_my_external_backup_restore_courses', $taskobject->get_lang_object()));

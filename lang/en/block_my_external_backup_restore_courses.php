@@ -130,3 +130,5 @@ $string['privacy:metadata:blocks_my_external_backup_restore_courses:block_extern
 $string['privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore'] = 'data table block_external_backuprestore that store datas concerning remote course restoration';
 $string['privacy:metadata:core_enrol'] = '\'Restore courses from remote Moodles\' generate enrolments to generated courses and so store user datas as enrollee';
 
+$string['noneedcoursecreate'] = 'User asking for course restore no need to have moodle/course:create capacity';
+$string['noneedcoursecreate_desc'] = 'User asking for course restore no need to have moodle/course:create capacity';

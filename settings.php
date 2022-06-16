@@ -51,6 +51,11 @@ if ($hassiteconfig) {
             get_string('defaultcategory_desc', 'block_my_external_backup_restore_courses'),
             ''
     ));
+    $settings->add(new admin_setting_configcheckbox('block_my_external_backup_restore_courses/noneedcoursecreate',
+        get_string('noneedcoursecreate', 'block_my_external_backup_restore_courses'),
+        get_string('noneedcoursecreate_desc', 'block_my_external_backup_restore_courses'),
+        0
+    ));
     $settings->add(new admin_setting_configcheckbox('block_my_external_backup_restore_courses/restorecourseinoriginalcategory',
             get_string('restorecourseinoriginalcategory', 'block_my_external_backup_restore_courses'),
             get_string('restorecourseinoriginalcategory_desc', 'block_my_external_backup_restore_courses'),
