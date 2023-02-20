@@ -253,9 +253,7 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                         get_string('course'),
                         get_string('choose_to_restore',
                             'block_my_external_backup_restore_courses'));
-                    if ($restorecourseinoriginalcategory == 1) {
-                        $coursetable->head[] = get_string('keepcategory', 'block_my_external_backup_restore_courses');
-                    }
+                    $coursetable->head[] = get_string('keepcategory', 'block_my_external_backup_restore_courses');
                     if (has_capability('block/my_external_backup_restore_courses:can_restore_user_datas',$systemcontext)) {
                         $coursetable->head[] = get_string('withuserdatasheadtable', 'block_my_external_backup_restore_courses');
                     }
