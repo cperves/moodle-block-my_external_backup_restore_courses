@@ -25,7 +25,7 @@
  */
 defined('MOODLE_INTERNAL') || die();
 function xmldb_block_my_external_backup_restore_courses_upgrade($oldversion=0) {
-    global $DB;
+    global $DB, $CFG;
     if ($oldversion < 2019052302) {
         $dbman = $DB->get_manager();
         $table = new xmldb_table('block_external_backuprestore');
@@ -37,18 +37,52 @@ function xmldb_block_my_external_backup_restore_courses_upgrade($oldversion=0) {
         }
         upgrade_block_savepoint(true, 2019052302, 'my_external_backup_restore_courses');
     }
-    $newversion = 2021071900;
-    if($oldversion < $newversion){
+    if($oldversion < 2021071900){
         $dbman = $DB->get_manager();
         $table = new xmldb_table('block_external_backuprestore');
         $field = new xmldb_field('externalmoodletoken');
         if ($dbman->field_exists($table, $field)) {
             $dbman->drop_field($table, $field);
         }
-        upgrade_block_savepoint(true, $newversion, 'my_external_backup_restore_courses');
+        upgrade_block_savepoint(true, 2021071900, 'my_external_backup_restore_courses');
 
 
         
+    }
+    $newversion = 2023020100;
+    if($oldversion < 2023020100){
+        $dbman = $DB->get_manager();
+        $table = new xmldb_table('block_external_backuprestore');
+        $field = new xmldb_field('withuserdatas', XMLDB_TYPE_INTEGER,'1',
+            null, XMLDB_NOTNULL, null, '0');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_block_savepoint(true, $newversion, 'my_external_backup_restore_courses');
+    }
+
+    $newversion = 2023021604;
+    if ($oldversion < $newversion) {
+        require_once($CFG->dirroot . '/webservice/lib.php');
+        require_once($CFG->dirroot . '/blocks/my_external_backup_restore_courses/locallib.php');
+        $webservicemanager = new webservice();
+        $webservice = $webservicemanager->get_external_service_by_shortname('wsblockmyexternalbakcuprestorecourses',
+            MUST_EXIST);
+        if (!$webservicemanager->service_function_exists('core_course_get_courses_by_field', $webservice->id)) {
+            $webservicemanager->add_external_function_to_service(
+                'core_course_get_courses_by_field',
+                $webservice->id);
+        }
+        $wsrole = $DB->get_record('role',
+            array('shortname' => block_my_external_backup_restore_courses_tools::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE));
+        if ($wsrole) {
+            $systemcontext = context_system::instance();
+            assign_capability('moodle/course:viewhiddencourses', CAP_ALLOW,
+                $wsrole->id, $systemcontext->id, true);
+            assign_capability('moodle/category:viewcourselist', CAP_ALLOW,
+                $wsrole->id, $systemcontext->id, true);
+        }
+        upgrade_block_savepoint(true, $newversion, 'my_external_backup_restore_courses');
     }
     return true;
 }

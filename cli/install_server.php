@@ -66,5 +66,5 @@ if (empty($options['verbose'])) {
 $result = block_my_external_backup_restore_courses_tools::install_webservice_moodle_server();
 $trace->finished();
 
-exit($result);
+exit(!empty($result));
 

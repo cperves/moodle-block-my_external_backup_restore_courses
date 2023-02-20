@@ -29,30 +29,35 @@ defined('MOODLE_INTERNAL') || die();
 require_once("$CFG->libdir/externallib.php");
 
 class block_my_external_backup_restore_courses_external extends external_api {
-    public static function get_courses_zip($username, $courseid) {
+    public static function get_courses_zip($username, $courseid, $withuserdatas=false) {
         global $DB, $CFG;
         require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/locallib.php');
         require_once('backup_external_courses_helper.class.php');
         $params = self::validate_parameters(self::get_courses_zip_parameters(),
-            array('username' => $username, 'courseid' => $courseid));
+            array('username' => $username, 'courseid' => $courseid, 'withuserdatas' => $withuserdatas));
 
         require_capability('block/my_external_backup_restore_courses:can_retrieve_courses', context_system::instance());
-        $usercourses = block_my_external_backup_restore_courses_tools::get_all_users_courses($params['username']);
+        if (!empty($username)) {
+            // Check some user rights.
+            $usercourses = block_my_external_backup_restore_courses_tools::get_all_users_courses($params['username']);
 
-        $usercourseids = array();
-        foreach ($usercourses as $usercourse) {
-            $usercourseids[] = $usercourse->id;
-        }
-        // User is not the owner of the course.
-        if (!in_array($params['courseid'], $usercourseids)) {
-            throw new Exception(get_string('notcourseowner', 'block_my_external_backup_restore_courses'));
-        }
+            $usercourseids = array();
+            foreach ($usercourses as $usercourse) {
+                $usercourseids[] = $usercourse->id;
+            }
+            // User is not the owner of the course.
+            if (!in_array($params['courseid'], $usercourseids)) {
+                throw new Exception(get_string('notcourseowner', 'block_my_external_backup_restore_courses'));
+            }
 
-        $userrecord = $DB->get_record('user', array('username' => $params['username']));
-        if (!$userrecord) {
-            throw new invalid_username_exception('user with username not found');
+            $userrecord = $DB->get_record('user', array('username' => $params['username']));
+            if (!$userrecord) {
+                throw new invalid_username_exception('user with username not found');
+            }
         }
-        $res = backup_external_courses_helper::run_external_backup($params['courseid'], $userrecord->id);
+        // Admin will backup course to have the necessary capabilities.
+        // Choose this fact to simplify capabilities requirements and to avoid to set to much capabilities to roles.
+        $res = backup_external_courses_helper::run_external_backup($params['courseid'], get_admin()->id, $withuserdatas);
         if (empty($res) || $res === false) {
             throw new Exception('Backup course can\'t be created');
         }
@@ -68,8 +73,9 @@ class block_my_external_backup_restore_courses_external extends external_api {
     public static function get_courses_zip_parameters() {
         return new external_function_parameters(
             array(
-                'username'     => new external_value(PARAM_TEXT, ''),
-                'courseid'     => new external_value(PARAM_INT, ''),
+                'username'      => new external_value(PARAM_TEXT, 'username'),
+                'courseid'      => new external_value(PARAM_INT, 'course id'),
+                'withuserdatas' => new external_value(PARAM_BOOL, 'get course archive with user datas included in', VALUE_DEFAULT, false),
             )
         );
     }
@@ -116,8 +122,8 @@ class block_my_external_backup_restore_courses_external extends external_api {
             $courseinfo['visible'] = $usercourse->visible;
             $courseinfo['groupmode'] = $usercourse->groupmode;
             $courseinfo['groupmodeforce'] = $usercourse->groupmodeforce;
-            $courseinfo['categoryidentifier'] = $usercourse->categoryidentifier;
-            $courseinfo['concernedusers'] = implode(",", $concernedusers);
+            $courseinfo['categoryidentifier'] = property_exists($usercourse,'categoryidentifier') ? $usercourse->categoryidentifier : null;
+            $courseinfo['concernedusers'] = property_exists($usercourse,'concernedusers') ? implode(",", $concernedusers) : '';
             $coursesinfo[] = $courseinfo;
         }
 

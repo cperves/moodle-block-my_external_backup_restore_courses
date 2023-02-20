@@ -50,7 +50,8 @@ $services = array(
     'Block my external backup restore courses web services' => array(
         'functions' => array (  'block_my_external_backup_restore_courses_get_courses_zip',
             'block_my_external_backup_restore_courses_get_courses',
-            'core_webservice_get_site_info'
+            'core_webservice_get_site_info',
+            'core_course_get_courses_by_field'
         ),
         'requiredcapability' => '',
         'restrictedusers' => 1,

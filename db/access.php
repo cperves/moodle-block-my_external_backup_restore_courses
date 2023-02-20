@@ -77,4 +77,12 @@ $capabilities = array(
                     'manager' => CAP_ALLOW
             ),
     ),
+    'block/my_external_backup_restore_courses:can_restore_user_datas' => array(
+        'riskbitmask' => RISK_PERSONAL,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW
+        ),
+    ),
 );

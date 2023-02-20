@@ -38,12 +38,8 @@ $PAGE->set_pagelayout('report');
 $PAGE->set_title(get_string('externalmoodlecourselist',
     'block_my_external_backup_restore_courses'));
 $PAGE->set_heading(get_string('externalmoodlecourselist', 'block_my_external_backup_restore_courses'));
-$PAGE->navbar->add(get_string('blocks'));
-$PAGE->navbar->add(get_string('externalmoodlecourselist',
-    'block_my_external_backup_restore_courses'),
-    $PAGE->url);
+
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('externalmoodlecourselist', 'block_my_external_backup_restore_courses'));
 echo $OUTPUT->box_start('my_external_backup_restore_course_refresh');
 echo html_writer::link('#', html_writer::empty_tag('img',
         array('src' => $OUTPUT->image_url('a/refresh'),
@@ -61,7 +57,7 @@ $systemcontext = context_system::instance();
 $config = get_config('block_my_external_backup_restore_courses');
 $role = $DB->get_record('role', array('id' => $config->enrollrole));
 if (!$role) {
-    print_error(get_string('cantenrollocourserolex',
+    throw new moodle_exception(get_string('cantenrollocourserolex',
             'block_my_external_backup_restore_courses',
             $config->enrollrole
     ));
@@ -84,7 +80,7 @@ if (empty($defaultcategoryid) ||
         )
     )
 ) {
-    print_error(get_string('misconfigured_plugin', 'block_my_external_backup_restore_courses'));
+    throw new moodle_exception(get_string('misconfigured_plugin', 'block_my_external_backup_restore_courses'));
 }
 
 // Forms paramteters.
@@ -109,15 +105,17 @@ if ($submit) {
                     $datas->externalcourseid = $selectedcourse;
                     $datas->externalmoodleurl = $externalmoodleurl;
                     $datas->internalcategory = optional_param('originalcategory_'.$selectedcourse, 0, PARAM_INT);
+                    $datas->withuserdatas = optional_param('withuserdatas_'.$selectedcourse, 0, PARAM_INT);
                     $datas->externalcoursename = optional_param('coursename_'.$selectedcourse, '', PARAM_TEXT);
                     $datas->status = block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED;
                     $datas->timecreated = time();
-                    $DB->insert_record('block_external_backuprestore', $datas);
+                    $datas->id = $DB->insert_record('block_external_backuprestore', $datas);
                 } else {
                     // Update.
                     // Only in case of !$onlyoneremoteinstance from performed status to scheduled or if changing category.
                     $datas = $dbinfo;
                     $neworiginalcategory = optional_param('originalcategory_'.$selectedcourse, 0, PARAM_INT);
+                    $newwithuserdatas = optional_param('withuserdatas_'.$selectedcourse, 0, PARAM_INT);
                     $currentoriginalstatus = $datas->status;
 
                     // Change status only of !onlyremoteinstance && status from performed to scheduled.
@@ -134,6 +132,8 @@ if ($submit) {
                             && $datas->status == block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED
                             && !$onlyoneremoteinstance
                         )
+                        || ($newwithuserdatas != $datas->withuserdatas
+                            && $currentoriginalstatus == block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED)
                     ) {
                         $datas->timemodified = time();
                         $datas->internalcategory = $neworiginalcategory;
@@ -191,7 +191,6 @@ if (!empty($errormsg)) {
     echo $errormsg;
     echo html_writer::end_div();
 }
-echo $errormsg;
 
 if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
     // Scheduled task informations.
@@ -257,6 +256,9 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                     if ($restorecourseinoriginalcategory == 1) {
                         $coursetable->head[] = get_string('keepcategory', 'block_my_external_backup_restore_courses');
                     }
+                    if (has_capability('block/my_external_backup_restore_courses:can_restore_user_datas',$systemcontext)) {
+                        $coursetable->head[] = get_string('withuserdatasheadtable', 'block_my_external_backup_restore_courses');
+                    }
                     $coursetable->head[] = get_string('status');
                     $coursetable->head[] = get_string('nextruntime', 'block_my_external_backup_restore_courses');
                     if ($onlyoneremoteinstance) {
@@ -279,6 +281,15 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                                 block_my_external_backup_restore_courses_tools::external_course_restored_or_on_way_by_other_users(
                                         $course->id, $domainname, $USER->id
                                 );
+                        $firstscheduledinfobyotherusersinfos = false;
+                        if ($scheduledinfobyotherusersinfos && count($scheduledinfobyotherusersinfos) > 0 ) {
+                            $firstscheduledinfobyotherusersinfos = current($scheduledinfobyotherusersinfos);
+                            if ($firstscheduledinfobyotherusersinfos->userid == 0) {
+                                $firstscheduledinfobyotherusersinfos->username = 'internal_moodle';
+                                $firstscheduledinfobyotherusersinfos->firstname = '';
+                                $firstscheduledinfobyotherusersinfos->lastname = 'internal moodle administrator';
+                            }
+                        }
                         $scheduledinfobyotherusers = !empty($scheduledinfobyotherusersinfos);
                                 // Original category informations.
                         $originalcategory = false;
@@ -328,17 +339,21 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                         $disabledline = false;
                         if (
                             ($onlyoneremoteinstance &&
-                                    ($scheduledinfobyotherusers ||
-                                            ($scheduledinfo &&
-                                                    $scheduledinfo->status !=
-                                                    block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED
-                                            )
-                                    ))
+                                    (
+                                        $scheduledinfobyotherusers
+                                        ||
+                                        (
+                                            $scheduledinfo
+                                            && $scheduledinfo->status !=
+                                                block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED
+                                        )
+                                    )
+                            )
                             ||
                             (!$onlyoneremoteinstance
                                 && (
                                         (
-                                        $scheduledinfo &&
+                                            $scheduledinfo &&
                                             ($scheduledinfo->status ==
                                                     block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS
                                                 ||
@@ -346,6 +361,8 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                                                 block_my_external_backup_restore_courses_tools::STATUS_ERROR
                                             )
                                         )
+                                        /*
+                                         * if other user why not lauching an other one
                                         ||
                                         (
                                             $scheduledinfobyotherusers &&
@@ -358,6 +375,7 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                                                     )
                                             )
                                         )
+                                        */
                                     )
                             )
                         ) {
@@ -381,11 +399,17 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                         // TODO !onlyremoteinstance implementation.
                         $defaultcategorychecked = $config->defaultcategorychecked;
                         $categorychecked = $scheduledinfo ? ($scheduledinfo->internalcategory != 0 ? true : false) :
-                                ($scheduledinfobyotherusersinfos ?
-                                        (property_exists($scheduledinfobyotherusers,'internalcategory')
-                                          && $scheduledinfobyotherusersinfos->internalcategory != 0 ? true : false)
+                                ($scheduledinfobyotherusers ?
+                                        (property_exists($firstscheduledinfobyotherusersinfos,'internalcategory')
+                                          && $firstscheduledinfobyotherusersinfos->internalcategory != 0 ? true : false)
                                         : ($originalcategory ? $defaultcategorychecked : false)
                                 );
+                        $withuserdataschecked = ($scheduledinfo ? $scheduledinfo->withuserdatas :
+                            ($scheduledinfobyotherusers ?
+                                (property_exists($firstscheduledinfobyotherusersinfos,'withuserdatas')
+                                && $firstscheduledinfobyotherusersinfos->withuserdatas != 0 ? true : false)
+                                : false)
+                        );
                         if (!$originalcategory
                             || (
                                 $scheduledinfo && $scheduledinfo->status
@@ -412,8 +436,14 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                             $originalcategory ? $originalcategory->id : 0,
                             $categorychecked,
                             $originalcategory ? $originalcategory->name : '', $attr);
-                        // TODO prechecked and freeze.
-
+                        if (has_capability('block/my_external_backup_restore_courses:can_restore_user_datas',
+                            $systemcontext)) {
+                            $withuserdatastablecell = new html_table_cell();
+                            $withuserdatastablecell->text .= html_writer::checkbox('withuserdatas_'.$course->id,
+                                1,
+                                $withuserdataschecked,
+                                '');
+                        }
                         $statetablecell = new html_table_cell();
                         $statetablecell->attributes['class'] = 'wrap';
                         $nextruntimetablecell = new html_table_cell();
@@ -621,10 +651,12 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                         $tablecells = array(
                                 $coursetablecell,
                                 $selecttablecell,
-                                $categorytablecell,
-                                $statetablecell,
-                                $nextruntimetablecell,
-                                $executiontimetablecell);
+                                $categorytablecell);
+                        if (has_capability('block/my_external_backup_restore_courses:can_restore_user_datas',
+                            $systemcontext)) {
+                            array_push($tablecells, $withuserdatastablecell);
+                        }
+                        array_push($tablecells, $statetablecell, $nextruntimetablecell, $executiontimetablecell);
                         if (!$onlyoneremoteinstance) {
                             $tablecells[] = $executiontimebyotherstablecell;
                         }
@@ -647,7 +679,10 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                 }
                 echo html_writer::end_tag('fieldset');
                 echo html_writer::end_tag('div');
-            } catch (Exception $ex) {
+            } catch (moodle_exception $ex) {
+                echo html_writer::start_div('alert-danger');
+                echo $ex->getMessage();
+                echo html_writer::end_div();
                 continue;
             }
         }

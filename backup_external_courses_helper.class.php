@@ -48,13 +48,45 @@ abstract class backup_external_courses_helper {
     public static $userid = 0;
     public static $filename = '';
     public static $filerecordid = 0;
+    public static $settingsnouserdatas = array(
+        // 'users' => "0" not set because of the chosen mode
+        "storage" => "2" ,
+        "max_kept" => "1",
+        "activities" => "1" ,
+        "blocks" => "1",
+        "filters" => "1",
+        "role_assignments" => "0",
+        "comments" => "1",
+        "logs" => "0",
+        "histories" => "0"
+    );
+    public static $settingsuserdatas = array(
+        'users'              => "1",
+        'role_assignments'   => '1',
+        'activities'         => '1',
+        'blocks'             => '1',
+        'filters'            => '1',
+        'comments'           => '1',
+        'badges'             => '1',
+        'calendarevents'     => '1',
+        'userscompletion'    => '1',
+        'logs'               => '1',
+        'histories'          => '1',
+        'questionbank'       => '1',
+        'groups'             => '1',
+        'competencies'       => '1',
+        'contentbankcontent' => '1',
+        'legacyfiles'        => '1',
+        'permissions'       => '1'
+
+    );
 
     /**
      * Runs the automated backups if required
      *
      * @global moodle_database $DB
      */
-    public static function run_external_backup($courseid, $userid) {
+    public static function run_external_backup($courseid, $userid, $withuserdatas=0) {
         global $CFG, $DB;
         self::$courseid = $courseid;
         self::$userid = $userid;
@@ -75,7 +107,7 @@ abstract class backup_external_courses_helper {
             @set_time_limit(0);
             raise_memory_limit(MEMORY_EXTRA);
             $course = $DB->get_record('course', array('id' => self::$courseid));
-            $coursestatus = self::launch_automated_backup_delete($course);
+            $coursestatus = self::launch_automated_backup_delete($course, $withuserdatas);
             $result[$coursestatus] += 1;
         }
         return array(
@@ -89,43 +121,25 @@ abstract class backup_external_courses_helper {
      * @param int $starttime
      * @return bool
      */
-    public static function launch_automated_backup_delete($course) {
+    public static function launch_automated_backup_delete($course, $withuserdatas=0) {
         global $CFG;
         require_once($CFG->dirroot.'/backup/util/includes/backup_includes.php');
-        $customsettings = array(
-            "backup_auto_storage" => "2" ,
-            "backup_auto_max_kept" => "1",
-            "backup_auto_blocks" => "1",
-            "backup_auto_users" => "0",
-            "backup_auto_role_assignments" => "0",
-            "backup_auto_activities" => "1" ,
-            "backup_auto_filters" => "1",
-            "backup_auto_comments" => "1",
-            "backup_auto_logs" => "0",
-            "backup_auto_histories" => "0"
-           );
+        $customsettings = ($withuserdatas ? self::$settingsuserdatas : self::$settingsnouserdatas);
         $customsettings = (object)$customsettings;
         $bc = new backup_controller(backup::TYPE_1COURSE, $course->id, backup::FORMAT_MOODLE,
-            backup::INTERACTIVE_NO, backup::MODE_HUB, self::$userid);
+            backup::INTERACTIVE_NO,
+            $withuserdatas? backup::MODE_GENERAL : backup::MODE_HUB,
+            get_admin()->id);
 
         try {
-            $settings = array(
-                'role_assignments' => 'backup_auto_role_assignments',
-                'activities' => 'backup_auto_activities',
-                'blocks' => 'backup_auto_blocks',
-                'filters' => 'backup_auto_filters',
-                'comments' => 'backup_auto_comments',
-                'completion_information' => 'backup_auto_userscompletion',
-                'logs' => 'backup_auto_logs',
-                'histories' => 'backup_auto_histories',
-            );
-            foreach ($settings as $setting => $configsetting) {
+            // Explicit settings to be not influenced by platform settings.
+            foreach ($customsettings as $setting => $value) {
                 if ($bc->get_plan()->setting_exists($setting)) {
                     try {
-                        $bc->get_plan()->get_setting($setting)->set_value($customsettings->{$configsetting});
+                        $bc->get_plan()->get_setting($setting)->set_value($value);
                     } catch (base_setting_exception $be) {
                         // Locked parameter not taken in charge.
-                        debug('base_setting_exception '.$be->getMessage());
+                        error_log('base_setting_exception '.$be->getMessage());
                     }
                 }
             }

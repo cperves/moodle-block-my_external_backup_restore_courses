@@ -17,7 +17,7 @@
 /**
  * Provides the {@link workshopform_accumulative_privacy_provider_testcase} class.
  *
- * @package     blocks_my_external_backup_restore_courses
+ * @package     block_my_external_backup_restore_courses
  * @category    test
  * @copyright   2019 Céline Pervès <cperves@unistra.fr>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -38,7 +38,7 @@ use \block_my_external_backup_restore_courses\privacy\provider;
  * @copyright 2019 Céline Pervès <cperves@unistra.fr>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class block_my_external_backup_restore_courses_privacy_testcase extends \core_privacy\tests\provider_testcase {
+class privacy_provider_test extends \core_privacy\tests\provider_testcase {
 
     /**
      * Tets get_contexts_for_userid function.

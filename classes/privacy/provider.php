@@ -60,35 +60,35 @@ class provider implements
                 'remote.moodle',
                 [
                         'externalcourseid' =>
-                                'privacy:metadata:blocks_my_external_backup_restore_courses:remote_moodle:externalcourseid'
+                                'privacy:metadata:block_my_external_backup_restore_courses:remote_moodle:externalcourseid'
                 ],
-                'privacy:metadata:blocks_my_external_backup_restore_courses:remote_moodle'
+                'privacy:metadata:block_my_external_backup_restore_courses:remote_moodle'
         );
         // No files stored since archive files are deleted in current moodle.
         $collection->add_subsystem_link('core_enrol', [], 'privacy:metadata:core_enrol');
         $collection->add_database_table('block_external_backuprestore',
             [
-                'userid' => 'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:userid',
+                'userid' => 'privacy:metadata:block_my_external_backup_restore_courses:block_external_backuprestore:userid',
                 'externalcourseid' =>
-                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalcourseid',
+                     'privacy:metadata:block_my_external_backup_restore_courses:block_external_backuprestore:externalcourseid',
                 'externalcoursename' =>
-                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalcoursename',
+                     'privacy:metadata:block_my_external_backup_restore_courses:block_external_backuprestore:externalcoursename',
                 'externalmoodleurl' =>
-                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:externalmoodleurl',
+                     'privacy:metadata:block_my_external_backup_restore_courses:block_external_backuprestore:externalmoodleurl',
                 'internalcategory' =>
-                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:internalcategory',
+                     'privacy:metadata:block_my_external_backup_restore_courses:block_external_backuprestore:internalcategory',
                 'status' =>
-                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:status',
+                     'privacy:metadata:block_my_external_backup_restore_courses:block_external_backuprestore:status',
                 'courseid' =>
-                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:courseid',
+                     'privacy:metadata:block_my_external_backup_restore_courses:block_external_backuprestore:courseid',
                 'timecreated' =>
-                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:timecreated',
+                     'privacy:metadata:block_my_external_backup_restore_courses:block_external_backuprestore:timecreated',
                 'timemodified' =>
-                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:timemodified',
+                     'privacy:metadata:block_my_external_backup_restore_courses:block_external_backuprestore:timemodified',
                 'timescheduleprocessed' =>
-                     'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore:timescheduleprocessed'
+                     'privacy:metadata:block_my_external_backup_restore_courses:block_external_backuprestore:timescheduleprocessed'
             ],
-            'privacy:metadata:blocks_my_external_backup_restore_courses:block_external_backuprestore'
+            'privacy:metadata:block_my_external_backup_restore_courses:block_external_backuprestore'
         );
 
         return $collection;

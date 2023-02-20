@@ -4,12 +4,15 @@ my_external_backup_restore_courses is a Moodle block that enable a user to resto
 this block must be installed in each moodle course clients and course servers involved
 
 ## Features
-  * enable a user to program course restoration where courses comes from external moodles
+  * enable a user to program course restoration, where courses comes from external moodles
+  * depending of his role capabilities he can restore courses with user datas
   * possibility to find the original category based on unique category identifier threw plugin settings on database relation (user must hace moodle/course:create in the category context)
   * restore cours in a default category (user must hace moodle/course:create in that context)
   * a scheduled task will launch remote backups and restorations of these courses
-  * Log and messaging include to notify of succes or failure
+  * Log and messaging include to notify of success or failure
   * possibilily to restrict to only one restoration by course
+  * admin tool to see list of backup/restore tasks
+  * admin tool to restore a course for a user
 
 ## Security warning
 * This plugin use a capability block/my_external_backup_restore_courses:can_retrieve_courses that enable webservice account to donload backup files of other users
@@ -19,7 +22,6 @@ this block must be installed in each moodle course clients and course servers in
 this plugin may not work in MNet environments fully because the username in that conditions username is not unique
 
 ## Download
-
 from moodle plugin repository
 
 ## Installation
@@ -53,7 +55,7 @@ For each moodles you need to fill the following setting parameters
   * in my_external_backup_course | categorytable_foreignkey the database foreign key for categorytable
   * in my_external_backup_course | categorytable_categoryfield the database field in categorytable unique for a category and common for both client and server moodles
 #### Cli install version
-* for moodle version 3.9 and above
+* for moodle version 4.0 and above
 * the following commands are the ones for traditional moodles
 ```bash
 php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=restorecourseinoriginalcategory --set=1
@@ -65,9 +67,8 @@ php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup
 ##### On course clients moodles
   * in my_external_backup_course | defaultcategory the categoryid where the course will be restored by default, users that restore must have capability to moodle/course:create
   * in my_external_backup_course | externalmoodles formatted list of course servers moodles formatted as moodle_url1,token_compte_webservice_moodle_externe1;moodle_url2,token_compte_webservice_moodle_externe2;...
-
 ###### Cli install version
-* for moodle version 3.9 and above
+* for moodle version 4.0 and above
 ```bash
 php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=defaultcategory --set=<idnumber>
 php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=externalmoodles --set=<moodles separated by ;>
@@ -80,13 +81,8 @@ On Site administration -> Server -> Scheduled tasks
 #### capability
 * in order to use this block in dashboard a capability block/my_external_backup_restore_courses:view is provided and by default allowed for coursecreator and manager profile
 * This enable to control block visibility in dashboard
-* To restore a course the given user must have all the necessary capability to restore course and activities in the client moodle targeted course category
-  * moodle/restore:restorecourse capability on client moodle
-  * moodle/restore:restoreactivity
-  * moodle/restore:restoresection
-  * moodle/question:add
-  * moodle/question:managecategory
-  * ... depending of your plugins
+* course restore and backup is virtually proceed with an admin account so the resquester user does not need special capabilities anymore
+  * except course:create in category if checkrequestercapascoursecreate setting is checked 
 
 #### Optional interesting settings
 ### Messaging
@@ -103,17 +99,13 @@ On Site administration -> Server -> Scheduled tasks
 ### Restriction
 * In Site administration -> Plugins -> Blocks -> Restore courses from remote Moodles
 * block_my_external_backup_restore_courses | onlyoneremoteinstance : Only one restoration is authorized by course
-* block_my_external_backup_restore_courses | enrollrole : define the role in wich the user will be re enrolled to course through the given button in the backupn external course button
+* block_my_external_backup_restore_courses | enrollrole :
+  * define the role that the requester will have in the restored course
+  * define the role in which the user will be re enrolled to course through the given button in the backup external course button
 
-
-## Administration from moodle
-An admin tool is available at : 
-https://moodle.org/plugins/tool_my_external_backup_restore_courses_admin
 
 ## Contributions
-
 Contributions of any form are welcome. Github pull requests are preferred.
-
 Fill any bugs, improvements, or feature requiests in our [issue tracker][issues].
 
 ## License

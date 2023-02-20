@@ -25,6 +25,7 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
+
 require_once($CFG->dirroot . '/repository/lib.php');
 
 class block_my_external_backup_restore_courses_tools{
@@ -55,34 +56,49 @@ class block_my_external_backup_restore_courses_tools{
                   WHERE c.id=:courseid';
         try {
             return $DB->get_records_sql($sql,
-                    array('coursecontextlevel' => CONTEXT_COURSE,
-                            'userid' => $userid,
-                            'roleid' => $roleid,
-                            'courseid' => $courseid
-                    ));
+                array('coursecontextlevel' => CONTEXT_COURSE,
+                    'userid' => $userid,
+                    'roleid' => $roleid,
+                    'courseid' => $courseid
+                ));
         } catch (Exception $ex) {
-            print_error(var_dump($ex));
+            throw new moodle_exception(var_dump($ex));
             return false;
         }
 
     }
     public static function external_backup_course_sitename($domainname) {
-        $token = self::get_external_moodle_token($domainname);
         $siteinfo = null;
         try {
             $siteinfo = self::rest_call_external_courses_client($domainname, 'core_webservice_get_site_info');
         } catch (Exception $e) {
-            throw new Exception('site name can \'t be retrieved : '.$e->getMessage());
+            throw new moodle_exception('site name can \'t be retrieved for '.$domainname.' : '.$e->getMessage());
         }
         $sitename = $siteinfo->sitename;
         if (!isset($sitename)) {
-            throw new Exception('site name can \'t be retrieved');
+            throw new moodle_exception('site name can \'t be retrieved');
         }
         return $sitename;
     }
+
+    public static function external_backup_course_name($domainname, $courseid) {
+        $courseinfo = null;
+        try {
+            $courseinfos = self::rest_call_external_courses_client($domainname, 'core_course_get_courses_by_field',
+                array('field' => 'id', 'value' => $courseid));
+        } catch (Exception $e) {
+            throw new Exception('course name can \'t be retrieved : '.$e->getMessage());
+        }
+        if (!$courseinfos || count($courseinfos->courses) ==0 ) {
+            throw new Exception('course name can \'t be retrieved. Bad external course id');
+        }
+        $coursename = $courseinfos->courses[0]->fullname;
+        return $coursename;
+    }
+
     public static function get_all_users_courses($username, $onlyactive = false,
-                                                 $fields = null,
-                                                 $sort = 'visible DESC,sortorder ASC') {
+        $fields = null,
+        $sort = 'visible DESC,sortorder ASC') {
         global $DB;
         $config = get_config('block_my_external_backup_restore_courses');
         $restorecourseinoriginalcategory = $config->restorecourseinoriginalcategory;
@@ -113,9 +129,9 @@ class block_my_external_backup_restore_courses_tools{
         }
 
         $basefields = array('id', 'category', 'sortorder',
-                'shortname', 'fullname', 'idnumber',
-                'startdate', 'visible',
-                'groupmode', 'groupmodeforce');
+            'shortname', 'fullname', 'idnumber',
+            'startdate', 'visible',
+            'groupmode', 'groupmodeforce');
 
         if (empty($fields)) {
             $fields = $basefields;
@@ -155,7 +171,7 @@ class block_my_external_backup_restore_courses_tools{
 
         $coursefields = 'c.'.join(',c.', $fields);
         $select = ", " . context_helper::get_preload_record_columns_sql('ctx');
-        $join = "LEFT JOIN mdl_context ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = ".CONTEXT_COURSE.")";
+        $join = "LEFT JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = ".CONTEXT_COURSE.")";
         list($ccselect, $ccjoin) = array($select, $join);
 
         $newformattedroles = self::get_formatted_concerned_roles_shortname();
@@ -175,7 +191,7 @@ class block_my_external_backup_restore_courses_tools{
                         ) AS u ON (u.contextid = ctx.id)
                     $categoryjoin
                     WHERE c.id <> ".SITEID.$categorywhere
-                 ." UNION
+            ." UNION
                 SELECT $coursefields $ccselect $categoryselect
                     FROM {course} c
                     INNER JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = ".CONTEXT_COURSE.")
@@ -192,7 +208,7 @@ class block_my_external_backup_restore_courses_tools{
                     INNER JOIN {role} r ON r.id = cat.roleid AND r.shortname IN (".implode(',', $newformattedroles).")
                     $categoryjoin
                     WHERE u.id = $userid AND c.id <> ".SITEID.$categorywhere
-                      .$subwhere." ".$orderby;
+            .$subwhere." ".$orderby;
 
         $courses = $DB->get_records_sql($sql, $params);
         return $courses;
@@ -214,7 +230,7 @@ class block_my_external_backup_restore_courses_tools{
     }
 
     public static function rest_call_external_courses_client($domainname, $functionname, $params=array(),
-                                                             $restformat='json', $method='get') {
+        $restformat='json', $method='post') {
         global $CFG;
         require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/locallib.php');
         require_once($CFG->dirroot.'/lib/filelib.php');
@@ -260,7 +276,7 @@ class block_my_external_backup_restore_courses_tools{
         $config = get_config("block_my_external_backup_restore_courses");
         $roles = $config->search_roles;
         $roles = str_replace("'", '', $roles);
-         return empty($roles) ? array() : explode(',', $roles);
+        return empty($roles) ? array() : explode(',', $roles);
     }
 
     public static function format_string_list_for_sql($stringlist, $delimiter=',') {
@@ -273,39 +289,16 @@ class block_my_external_backup_restore_courses_tools{
 
     public static function external_course_restored_or_on_way_by_other_users($externalcourseid, $externalmoodleurl, $localuserid) {
         global $DB;
+        // Since admin can restore courses for other user without setting them localuserid can be set to 0
         $sql = 'select b.*, u.username, u.lastname, u.firstname from {block_external_backuprestore} b
-                    inner join {user} u on u.id=b.userid
+                    left join {user} u on u.id=b.userid
                     where externalcourseid=:externalcourseid and externalmoodleurl=:externalmoodleurl
-                        and userid<>:localuserid and status>:errorstatus';
+                        and (userid<>:localuserid or userid=0) and status>:errorstatus';
         $alreadyrestoredcourses = $DB->get_records_sql($sql,
-                    array('externalcourseid' => $externalcourseid, 'externalmoodleurl' => $externalmoodleurl,
-                            'localuserid' => $localuserid,
-                            'errorstatus' => self::STATUS_ERROR));
+            array('externalcourseid' => $externalcourseid, 'externalmoodleurl' => $externalmoodleurl,
+                'localuserid' => $localuserid,
+                'errorstatus' => self::STATUS_ERROR));
         return $alreadyrestoredcourses;
-    }
-
-    public static function get_other_users_for_course_restored_or_on_way_by_other_users($externalcourseid,
-            $externalmoodleurl, $localuserid
-    ) {
-        global $DB;
-        $sql = 'select * from {block_external_backuprestore}
-                    where externalcourseid=:externalcourseid and externalmoodleurl=:externalmoodleurl
-                        and userid<>:localuserid and status>:errorstatus;';
-        $alreadyrestoredcourses = $DB->get_records($sql,
-                array('externalcoursename' => $externalcourseid,
-                        'externalmoodleurl' => $externalmoodleurl,
-                        'userid' => $localuserid,
-                        'errorstatus' => self::STATUS_ERROR
-                ));
-        if (!$alreadyrestoredcourses) {
-            return null;
-        }
-        $concernedusers = array();
-        foreach ($alreadyrestoredcourses as $alreadyrestoredcourse) {
-            $currentuser = $DB->get_record('user', array('id' => $alreadyrestoredcourse->id));
-            $concernedusers[$currentuser->username] = $currentuser;
-        }
-        return $concernedusers;
     }
 
     public static function array_contains_object_with_properties($array, $propertyname, $values) {
@@ -335,6 +328,12 @@ class block_my_external_backup_restore_courses_tools{
             $wsroleid, $systemcontext->id, true);
         assign_capability('block/my_external_backup_restore_courses:can_retrieve_courses', CAP_ALLOW,
             $wsroleid, $systemcontext->id, true);
+        assign_capability('webservice/rest:use', CAP_ALLOW,
+            $wsroleid, $systemcontext->id, true);
+        assign_capability('moodle/course:viewhiddencourses', CAP_ALLOW,
+            $wsroleid, $systemcontext->id, true);
+        assign_capability('moodle/category:viewcourselist', CAP_ALLOW,
+            $wsroleid, $systemcontext->id, true);
         // Allow role assignmrnt on system.
         set_role_contextlevels($wsroleid, array(10 => 10));
         $wsuser = $DB->get_record('user', array('username' => self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_DEFAULT_USER));
@@ -343,6 +342,7 @@ class block_my_external_backup_restore_courses_tools{
             $wsuser->firstname = 'wsuser';
             $wsuser->lastname = self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_DEFAULT_USER;
             $wsuser->email = 'ws_dtas'.$CFG->noreplyaddress;
+            $wsuser->confirmed=1;
             $DB->update_record('user', $wsuser);
         } else {
             cli_writeln('user '.self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_DEFAULT_USER.'already exists, we\'ll use it');
@@ -362,7 +362,8 @@ class block_my_external_backup_restore_courses_tools{
         );
         $event = \core\event\webservice_service_user_added::create($params);
         $event->trigger();
-        return true;
+        $token = external_generate_token(EXTERNAL_TOKEN_PERMANENT, $service->id, $wsuser->id, $systemcontext->id);
+        return $token;
     }
 
     public static function get_external_moodles_url_token(){
@@ -376,7 +377,7 @@ class block_my_external_backup_restore_courses_tools{
                 if(!empty(trim($domainname))){
                     $token = $keyvalue[1];
                     if (array_key_exists($domainname, $externalmoodlesurltoken)) {
-                        print_error("Duplicate domainename/token detected for $domainname");
+                        throw new moodle_exception("Duplicate domainename/token detected for $domainname");
                     }
                     $externalmoodlesurltoken[$domainname] = $token;
                 }
@@ -387,6 +388,12 @@ class block_my_external_backup_restore_courses_tools{
 
     public static function get_external_moodle_token($domainname){
         return self::get_external_moodles_url_token()[$domainname];
+    }
+
+    public static function admin_any_entries() {
+        global $DB, $CFG;
+        $entries = $DB->get_records('block_external_backuprestore');//troubles with moodle get_count
+        return $entries === false ? false:count($entries)>0;
     }
 }
 
@@ -406,7 +413,6 @@ abstract class block_my_external_backup_restore_courses_task_helper{
     public static function run_automated_backup_restore() {
         global $CFG, $SITE, $DB;
         $config = get_config('block_my_external_backup_restore_courses');
-        $timelimitedmod = $config->timelimitedmod == 1 ? true : false;
         $errors = new block_my_external_backup_restore_courses_task_error_list();
         // This could take a while!
         core_php_time_limit::raise();
@@ -430,27 +436,6 @@ abstract class block_my_external_backup_restore_courses_task_helper{
         $defaultcategorycontext = context_coursecat::instance($defaultcategoryid);
         $externalmoodlesitenames = array();
         foreach ($tasks as $task) {
-            if ($timelimitedmod) {
-                $currenttime = new DateTime();
-                $limitstarttime = clone $currenttime;
-                $limitstarttime->setTimezone(core_date::get_server_timezone_object());
-                $limitstarttime->setTime($config->limitstart_hour, $config->limitstart_minute);
-                $limitendtime = clone $currenttime;
-                $limitendtime->setTimezone(core_date::get_server_timezone_object());
-                $limitendtime->setTime($config->limitend_hour, $config->limitend_minute);
-                if ($limitstarttime > $limitendtime) {
-                    // Changing day during interval.
-                    // Starttime in day before.
-                    $limitstarttime->sub(new DateInterval('P1D'));
-                }
-
-                if ($limitstarttime == $limitendtime || ($currenttime > $limitstarttime && $currenttime > $limitendtime)) {
-                    $errors->add_error(new block_my_external_backup_restore_courses_task_error($task,
-                        'execution time outdated'));
-                    return true;
-                }
-            }
-
             $errors = new block_my_external_backup_restore_courses_task_error_list();
             $taskobject = new block_my_external_backup_restore_courses_task($task);
             // Search externalmoodlesitename.
@@ -462,16 +447,19 @@ abstract class block_my_external_backup_restore_courses_task_helper{
                 $task->externalmoodlesitename = $externalmoodlesitenames[$task->externalmoodleurl];
             }
             $username = $taskobject->get_username();
-            $user = $DB->get_record('user', array('username' => $username));
-            if (!$username) {
-                $errors->add_error(new block_my_external_backup_restore_courses_task_error($task,
-                    'user not found for task : '.$task->id));
-                $taskobject->change_task_status(block_my_external_backup_restore_courses_tools::STATUS_ERROR);
-                $errors->add_errors($task->get_errors());
-                $errors->notify_errors();
-                continue;
+            if ($username) {
+                $user = $DB->get_record('user', array('username' => $username));
+                if (!$user) {
+                    $errors->add_error(new block_my_external_backup_restore_courses_task_error($task,
+                        'user not found for task : '.$task->id));
+                    $taskobject->change_task_status(block_my_external_backup_restore_courses_tools::STATUS_ERROR);
+                    $errors->add_errors($task->get_errors());
+                    $errors->notify_errors();
+                    continue;
+                }
             }
-            // Check user rights to restore his course in cateogry.
+
+            // Check user rights to restore his course in category.
             $taskcategorycontext = null;
             if ($task->internalcategory == 0) {
                 $taskcategorycontext = $defaultcategorycontext;
@@ -485,14 +473,20 @@ abstract class block_my_external_backup_restore_courses_task_helper{
                     $taskcategorycontext = context_coursecat::instance($task->internalcategory);
                 }
             }
+            $checkrequestercapascoursecreate =
+                get_config('local_my_external_backup_restore_courses', 'checkrequestercapascoursecreate');
+            $hascapabilitycreatingcourseincategory = !$checkrequestercapascoursecreate
+                || has_capability('moodle/course:create', $taskcategorycontext, $task->requesterid);
+            $hascapabilitycreatecourseindefaultcategory = !$checkrequestercapascoursecreate
+                || has_capability('moodle/course:create', $defaultcategorycontext, $task->requesterid);
             if ($task->internalcategory != 0 && ($taskcategorycontext == null
-                    || !has_capability('moodle/course:create', $taskcategorycontext, $task->userid))) {
+                    || !$hascapabilitycreatingcourseincategory)) {
                 // Trying to check if ok in defaultcategory context.
                 $taskobject->add_error(get_string('cantrestorecourseincategorycontext',
                     'block_my_external_backup_restore_courses', $taskobject->get_lang_object()));
                 // Changing category.
                 $task->internalcategory = $defaultcategoryid;
-                if (!has_capability('moodle/course:create', $defaultcategorycontext, $task->userid)) {
+                if (!$hascapabilitycreatecourseindefaultcategory) {
                     $taskobject->add_error(get_string('cantrestorecourseindefaultcategorycontext',
                         'block_my_external_backup_restore_courses', $taskobject->get_lang_object()));
                     $taskobject->change_task_status(block_my_external_backup_restore_courses_tools::STATUS_ERROR);
@@ -500,19 +494,20 @@ abstract class block_my_external_backup_restore_courses_task_helper{
                     $errors->notify_errors();
                     continue;
                 }
-            } else if ($task->internalcategory == 0 && !has_capability('moodle/course:create',
-                    $defaultcategorycontext, $task->userid)) {
-                        $taskobject->add_error(get_string('cantrestorecourseindefaultcategorycontext',
-                            'block_my_external_backup_restore_courses', $taskobject->get_lang_object()));
-                        $taskobject->change_task_status(block_my_external_backup_restore_courses_tools::STATUS_ERROR);
-                        $errors->add_errors($taskobject->get_errors());
-                        $errors->notify_errors();
-                        continue;
+            } else {
+                if ($task->internalcategory == 0 && !$hascapabilitycreatecourseindefaultcategory) {
+                    $taskobject->add_error(get_string('cantrestorecourseindefaultcategorycontext',
+                        'block_my_external_backup_restore_courses', $taskobject->get_lang_object()));
+                    $taskobject->change_task_status(block_my_external_backup_restore_courses_tools::STATUS_ERROR);
+                    $errors->add_errors($taskobject->get_errors());
+                    $errors->notify_errors();
+                    continue;
+                }
             }
             $taskobject->change_task_status(block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS);
-            $result = $taskobject->download_external_backup_courses($username);
+            $result = $taskobject->download_external_backup_courses($username, $task->withuserdatas);
             if ($result) {
-                $result = $taskobject->restore_course_from_backup_file($defaultcategoryid);
+                $result = $taskobject->restore_course_from_backup_file($defaultcategoryid, $task->withuserdatas);
                 if (!empty($result)) {
                     $taskobject->change_task_status(block_my_external_backup_restore_courses_tools::STATUS_PERFORMED);
                     $taskobject->set_local_courseid($result);
@@ -534,11 +529,15 @@ abstract class block_my_external_backup_restore_courses_task_helper{
 
     public static function retrieve_tasks($defaultcategoryid) {
         global $DB;
-        return $DB->get_records_sql(
-            "select beb.*,cat.name as internalcategoryname ,dcat.name as defaultcategoryname
-                    from {block_external_backuprestore} beb left join {course_categories} cat on cat.id=beb.internalcategory
+        $config = get_config('block_my_external_backup_restore_courses');
+        $admin = get_admin();
+        $select = "select beb.*,cat.name as internalcategoryname ,dcat.name as defaultcategoryname, beb.userid as requesterid, ".$admin->id." as contractorid";
+        $request = $select
+            ." from {block_external_backuprestore} beb left join {course_categories} cat on cat.id=beb.internalcategory
                         left join {course_categories} dcat on dcat.id=:default
-                    where status=:status order by beb.timecreated asc",
+                    where status=:status order by beb.timecreated asc";
+        return $DB->get_records_sql(
+            $request,
             array('status' => block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED, 'default' => $defaultcategoryid));
     }
 }
@@ -549,11 +548,15 @@ class block_my_external_backup_restore_courses_task{
         $this->task = $task;
         $this->task->username = $this->get_username();
     }
-    protected function enrol_editingteacher($courseid) {
+    protected function enrol_requester_if_any($courseid) {
         global $DB;
-        $instance = $this->get_manual_enrol($courseid);
-        $role = $DB->get_record('role', array('shortname' => 'editingteacher'));
-        $this->enrol_user(enrol_get_plugin('manual'), $instance, $role->id);
+        if (!empty($this->task->requesterid)) {
+            $instance = $this->get_manual_enrol($courseid);
+            $role = $DB->get_record('role',
+                array('id' => get_config('block_my_external_backup_restore_courses', 'enrollrole'))
+            );
+            $this->enrol_user(enrol_get_plugin('manual'), $instance, $role->id);
+        }
     }
     public function retrieve_external_moodle_name() {
         global $CFG;
@@ -570,10 +573,10 @@ class block_my_external_backup_restore_courses_task{
         }
         return $sitename;
     }
-    public function download_external_backup_courses($username) {
+    public function download_external_backup_courses($username, $withuserdatas) {
         global $CFG;
         $functionname = 'block_my_external_backup_restore_courses_get_courses_zip';
-        $params = array('username' => $username, 'courseid' => $this->task->externalcourseid);
+        $params = array('username' => $username, 'courseid' => $this->task->externalcourseid, 'withuserdatas' => $withuserdatas);
         $filereturned = block_my_external_backup_restore_courses_tools::rest_call_external_courses_client(
             $this->task->externalmoodleurl, $functionname, $params, $restformat = 'json', $method = 'post');
         if (empty($filereturned)) {
@@ -586,7 +589,7 @@ class block_my_external_backup_restore_courses_task{
         // NOTE: normally you should get this download url from your previous call of core_course_get_contents().
         $token = block_my_external_backup_restore_courses_tools::get_external_moodle_token($this->task->externalmoodleurl);
         if(!$token){
-            print_error("token not find for moodle url $url");
+            throw new moodle_exception("token not find for moodle url $url");
         }
         $url .= '?token=' . $token;
         // NOTE: in your client/app don't forget to attach the token to your download url.
@@ -594,13 +597,14 @@ class block_my_external_backup_restore_courses_task{
         // Serve file.
         return $this->download_backup_course($url);
     }
-    public function restore_course_from_backup_file($defaultcategoryid) {
+    public function restore_course_from_backup_file($defaultcategoryid, $withuserdatas=false) {
         global $CFG, $DB;
         $categoryid = $this->task->internalcategory == 0 ? $defaultcategoryid : $this->task->internalcategory;
         require_once($CFG->dirroot . "/backup/util/includes/backup_includes.php");
         require_once($CFG->dirroot . "/backup/util/includes/restore_includes.php");
         require_once($CFG->dirroot.'/backup/util/loggers/base_logger.class.php');
         require_once($CFG->dirroot.'/backup/util/loggers/output_text_logger.class.php');
+        require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/backup_external_courses_helper.class.php');
         // Check if category is OK.
         // Temp dir.
         if (empty($CFG->tempdir)) {
@@ -638,12 +642,28 @@ class block_my_external_backup_restore_courses_task{
         // Restore.
         $courseid = restore_dbops::create_new_course($fullname, $shortname, $categoryid);
         try {
+            $customsettings = ($withuserdatas ?
+                backup_external_courses_helper::$settingsuserdatas : backup_external_courses_helper::$settingsnouserdatas
+            );
+            $customsettings = (object)$customsettings;
             $rc = new restore_controller(block_my_external_backup_restore_courses_task_helper::BACKUP_TEMPDIRNAME,
                 $courseid, backup::INTERACTIVE_NO,
-                backup::MODE_GENERAL, $this->task->userid, backup::TARGET_NEW_COURSE);
+                $withuserdatas? backup::MODE_GENERAL : backup::MODE_HUB, $this->task->contractorid , backup::TARGET_NEW_COURSE);
+            // Explicit settings to be not influenced by platform settings.
+            foreach ($customsettings as $setting => $value) {
+                if ($rc->get_plan()->setting_exists($setting)) {
+                    try {
+                        $rc->get_plan()->get_setting($setting)->set_value($value);
+                    } catch (base_setting_exception $rc) {
+                        // Locked parameter not taken in charge.
+                        error_log('base_setting_exception '.$rc->getMessage());
+                    }
+                }
+            }
+
         } catch (restore_controller_exception $re) {
             $this->taskerrors[] = new block_my_external_backup_restore_courses_task_error($this->task,
-                    $re->getMessage()." ".$re->a->capability." for user ".$re->a->userid);
+                $re->getMessage()." ".$re->a->capability." for user ".$re->a->userid);
             // Exit.
             return false;
         }
@@ -669,7 +689,7 @@ class block_my_external_backup_restore_courses_task{
                 $errormessage = $check;
             }
             $this->taskerrors[] = new block_my_external_backup_restore_courses_task_error($this->task,
-                    "Restore failed : ".PHP_EOL.$errormessage);
+                "Restore failed : ".PHP_EOL.$errormessage);
             // Exit.
             if ($haserrors) {
                 return false;
@@ -693,7 +713,7 @@ class block_my_external_backup_restore_courses_task{
         if (file_exists($path)) {
             unlink($path);
         }
-        $this->enrol_editingteacher($courseid);
+        $this->enrol_requester_if_any($courseid);
         return $courseid;
     }
     protected function download_backup_course($url) {
@@ -752,7 +772,7 @@ class block_my_external_backup_restore_courses_task{
     }
     public function get_username() {
         global $DB;
-        $user = $DB->get_record('user', array('id' => $this->task->userid));
+        $user = $DB->get_record('user', array('id' => $this->task->requesterid));
         if (!$user) {
             return false;
         }
@@ -760,7 +780,7 @@ class block_my_external_backup_restore_courses_task{
     }
     public function get_user() {
         global $DB;
-        $user = $DB->get_record('user', array('id' => $this->task->userid));
+        $user = $DB->get_record('user', array('id' => $this->task->requesterid));
         return $user;
     }
     protected function get_manual_enrol($courseid) {
@@ -771,12 +791,12 @@ class block_my_external_backup_restore_courses_task{
             // Create new instance.
             $enrolmanual = enrol_get_plugin('manual');
             $fields = array(
-                    'status'          => 0,
-                    'roleid'          => $enrolmanual->get_config('roleid'),
-                    'enrolperiod'     => $enrolmanual->get_config('enrolperiod'),
-                    'expirynotify'    => $enrolmanual->get_config('expirynotify'),
-                    'notifyall'       => 0,
-                    'expirythreshold' => $enrolmanual->get_config('expirythreshold')
+                'status'          => 0,
+                'roleid'          => $enrolmanual->get_config('roleid'),
+                'enrolperiod'     => $enrolmanual->get_config('enrolperiod'),
+                'expirynotify'    => $enrolmanual->get_config('expirynotify'),
+                'notifyall'       => 0,
+                'expirythreshold' => $enrolmanual->get_config('expirythreshold')
             );
             $instanceid = $enrolmanual->add_instance($course, $fields);
             $instance = $DB->get_record('enrol', array('id' => $instanceid));
@@ -784,7 +804,7 @@ class block_my_external_backup_restore_courses_task{
         return $instance;
     }
     protected function enrol_user($enrolplugin, $instance, $roleid) {
-        $enrolplugin->enrol_user($instance, $this->task->userid, $roleid);
+        $enrolplugin->enrol_user($instance, $this->task->requesterid, $roleid);
     }
     public function get_errors() {
         return $this->taskerrors;
@@ -795,12 +815,12 @@ class block_my_external_backup_restore_courses_task{
         $langobject->externalcourseid = $this->task->externalcourseid;
         $langobject->externalmoodleurl = $this->task->externalmoodleurl;
         $langobject->externalmoodlesitename = $this->task->externalmoodlesitename;
-        $langobject->userid = $this->task->userid;
+        $langobject->userid = $this->task->requesterid;
         $langobject->internalcategory = $this->task->internalcategory;
         $langobject->status = $this->task->status;
         $langobject->externalcoursename = $this->task->externalcoursename;
         $langobject->internalcategoryname = !isset($this->task->internalcategoryname)
-            || empty($this->task->internalcategoryname) ? $this->task->externalcoursename : $this->task->internalcategoryname;
+        || empty($this->task->internalcategoryname) ? $this->task->externalcoursename : $this->task->internalcategoryname;
         $langobject->defaultcategoryname = $this->task->defaultcategoryname;
         $langobject->site = $SITE->fullname;
         $langobject->siteurl = $CFG->wwwroot;
@@ -891,7 +911,7 @@ class block_my_external_backup_restore_courses_task_error extends stdClass{
             : get_string('NA', 'block_my_external_backup_restore_courses');
         $this->externalcourseid = $task->externalcourseid;
         $this->courseid = $courseid;
-        $this->usernameorid = $task->userid;
+        $this->usernameorid = $task->requesterid;
         $this->externalcoursename = $task->externalcoursename;
         $this->message = $message;
         $this->internalcategoryname = $task->internalcategoryname;
@@ -978,7 +998,7 @@ class block_my_external_backup_restore_courses_task_error_list {
                 if ($eventdata == null) {
                     $user = $taskerrors->get_user();
                     if (!$user) {
-                        print_error('user '.$taskerrors->_get('usernameorid').' not found');
+                        throw new moodle_exception('user '.$taskerrors->_get('usernameorid').' not found');
                     }
                     // Current messaging.
                     $eventdata = new \core\message\message();
