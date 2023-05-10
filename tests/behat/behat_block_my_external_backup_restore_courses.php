@@ -46,7 +46,7 @@ class behat_block_my_external_backup_restore_courses extends behat_base {
         global $CFG;
         // Create role,user and token for webservice
         $token = self::install_webservice_moodle_server();
-        set_config('external_moodles', $CFG->wwwroot.",".$token, 'block_my_external_backup_restore_courses');
+        set_config('external_moodles', $CFG->behat_wwwroot.",".$token, 'block_my_external_backup_restore_courses');
     }
 
     /**
