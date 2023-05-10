@@ -22,9 +22,19 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+namespace block_my_external_backup_restore_courses;
 
 global $CFG;
+use backup;
+use block_my_external_backup_restore_courses_external;
+use block_my_external_backup_restore_courses_task;
+use block_my_external_backup_restore_courses_task_helper;
+use block_my_external_backup_restore_courses_tools;
+use context_course;
+use context_system;
+use external_api;
+use externallib_advanced_testcase;
+use stdClass;
 
 require_once(__DIR__.'/../locallib.php');
 require_once(__DIR__.'/../externallib.php');
@@ -190,7 +200,7 @@ class externallib_test extends externallib_advanced_testcase {
         assign_capability('moodle/restore:restorecourse', CAP_ALLOW, $coursecreatorrole->id, $systemcontext, true);
         accesslib_clear_all_caches_for_unit_testing();
         // Courses datas.
-        $editingteacherrecord = new stdClass();
+        $editingteacherrecord = new  stdClass();
         $editingteacherrecord->username='editingteacher1';
         $this->editingteacheruser = $this->datagenerator->create_user($editingteacherrecord);
         $this->studentuser = $this->datagenerator->create_user();
@@ -220,7 +230,7 @@ class externallib_test extends externallib_advanced_testcase {
     private function restore_course($username, $internalcategory, $withuserdatas=false) {
         global $DB, $CFG;
         // Add course to courses to restore
-        $datas = new stdClass();
+        $datas = new  stdClass();
         $datas->userid = $this->editingteacheruser->id;
         $datas->externalcourseid = $this->course1->id;
         $datas->externalcoursename = $this->course1->shortname;
@@ -262,7 +272,7 @@ class externallib_test extends externallib_advanced_testcase {
                 'attachment' => 1
             )
         );
-        $record = new \stdClass();
+        $record = new stdClass();
         $record->discussion = $discussion->id;
         $record->parent = $discussion->firstpost;
         $record->userid = $this->studentuser->id;
