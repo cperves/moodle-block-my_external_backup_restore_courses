@@ -201,7 +201,7 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
     $externalmoodles = explode(';', $externalmoodlescfg);
     $nbropenedexternalmoodles = 0;
     foreach ($externalmoodles as $keyvalue) {
-        if (!empty($keyvalue)) {
+        if (!empty(trim($keyvalue))) {
             $keyvalue = explode(',', $keyvalue);
             $domainname = $keyvalue[0];
             $validusername = true;
