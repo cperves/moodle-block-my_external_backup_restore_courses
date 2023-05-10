@@ -138,7 +138,7 @@ class block_my_external_backup_restore_courses_tools{
         } else if (is_string($fields)) {
             // Turn the fields from a string to an array.
             $fields = explode(',', $fields);
-            $fields = array_map('trim', $fields);
+            $fields = array_map('trim' ?? '', $fields);
             $fields = array_unique(array_merge($basefields, $fields));
         } else if (is_array($fields)) {
             $fields = array_unique(array_merge($basefields, $fields));
@@ -150,7 +150,7 @@ class block_my_external_backup_restore_courses_tools{
         }
 
         $orderby = "";
-        $sort    = trim($sort);
+        $sort    = trim($sort ?? '');
         if (!empty($sort)) {
             $orderby = "ORDER BY $sort";
         }
@@ -245,7 +245,7 @@ class block_my_external_backup_restore_courses_tools{
         } else if ($method == 'post') {
             $resp = $curl->post($serverurl . $restformat, $params);
         }
-        $resp = json_decode($resp);
+        $resp = json_decode($resp ?? '');
         // Check if errors encountered.
         if (!isset($resp)) {
             throw new Exception($resp);
@@ -275,8 +275,8 @@ class block_my_external_backup_restore_courses_tools{
     public static function get_concerned_roles_shortname() {
         $config = get_config("block_my_external_backup_restore_courses");
         $roles = $config->search_roles;
-        $roles = str_replace("'", '', $roles);
-        return empty($roles) ? array() : explode(',', $roles);
+        $roles = str_replace("'", '', $roles ?? '');
+        return empty($roles) ? array() : explode(',', $roles ?? '');
     }
 
     public static function format_string_list_for_sql($stringlist, $delimiter=',') {
@@ -374,7 +374,7 @@ class block_my_external_backup_restore_courses_tools{
             foreach ($externalmoodles as $externalmoodle) {
                 $keyvalue = explode(',', $externalmoodle);
                 $domainname = $keyvalue[0];
-                if(!empty(trim($domainname))){
+                if(!empty(trim($domainname ?? ''))){
                     $token = $keyvalue[1];
                     if (array_key_exists($domainname, $externalmoodlesurltoken)) {
                         throw new moodle_exception("Duplicate domainename/token detected for $domainname");
@@ -852,7 +852,7 @@ class block_my_external_backup_restore_courses_task{
         $eventdata->contexturlname = $SITE->fullname;
         $eventdata->fullmessage = get_string('success_mail_main_message',
             'block_my_external_backup_restore_courses', $this->get_lang_object());
-        $eventdata->fullmessagehtml = str_replace('\n', '<br/>', $eventdata->fullmessage);
+        $eventdata->fullmessagehtml = str_replace('\n', '<br/>', $eventdata->fullmessage ?? '');
         // For owner.
         $eventdata->userto = $this->get_user();
 
@@ -866,7 +866,7 @@ class block_my_external_backup_restore_courses_task{
         $warningstoowner = get_config('block_my_external_backup_restore_courses', 'warningstoowner');
         if ($warningstoowner == 1) {
             $eventdata->fullmessage .= $fullmessage;
-            $eventdata->fullmessagehtml = str_replace('\n', '<br/>', $eventdata->fullmessage);
+            $eventdata->fullmessagehtml = str_replace('\n', '<br/>', $eventdata->fullmessage ?? '');
         }
         // Send message to task owner.
         $result = message_send($eventdata);
@@ -874,7 +874,7 @@ class block_my_external_backup_restore_courses_task{
         // For admins.
         if ($warningstoowner != 1) {
             $eventdata->fullmessage .= $fullmessage;
-            $eventdata->fullmessagehtml = str_replace('\n', '<br/>', $eventdata->fullmessage);
+            $eventdata->fullmessagehtml = str_replace('\n', '<br/>', $eventdata->fullmessage ?? '');
         }
         $admins = get_admins();
         foreach ($admins as $admin) {
@@ -1021,12 +1021,12 @@ class block_my_external_backup_restore_courses_task_error_list {
             }
             // For owner.
             $eventdata->userto = $user;
-            $eventdata->fullmessagehtml = str_replace('\n', '<br/>', $eventdata->fullmessage);
+            $eventdata->fullmessagehtml = str_replace('\n', '<br/>', $eventdata->fullmessage ?? '');
             $result = message_send($eventdata);
             // For admins.
             $admins = get_admins();
             $eventdata->fullmessage .= $fullmessage;
-            $eventdata->fullmessagehtml = str_replace('\n', '<br/>', $eventdata->fullmessage);
+            $eventdata->fullmessagehtml = str_replace('\n', '<br/>', $eventdata->fullmessage ?? '');
             foreach ($admins as $admin) {
                 $eventdata->userto = $admin;
                 $result = message_send($eventdata);

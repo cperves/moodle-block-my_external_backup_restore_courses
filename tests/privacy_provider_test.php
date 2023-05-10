@@ -23,14 +23,20 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+namespace block_my_external_backup_restore_courses;
 
 global $CFG;
 
+use block_my_external_backup_restore_courses_tools;
+use context_course;
+use context_user;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\writer;
-use \core_privacy\local\request\approved_userlist;
-use \block_my_external_backup_restore_courses\privacy\provider;
+use core_privacy\local\request\approved_userlist;
+use block_my_external_backup_restore_courses\privacy\provider;
+use core_privacy\tests\provider_testcase;
+use core_user;
+use stdClass;
 
 /**
  * Unit tests for the privacy API implementation.
@@ -38,7 +44,7 @@ use \block_my_external_backup_restore_courses\privacy\provider;
  * @copyright 2019 Céline Pervès <cperves@unistra.fr>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class privacy_provider_test extends \core_privacy\tests\provider_testcase {
+class privacy_provider_test extends provider_testcase {
 
     /**
      * Tets get_contexts_for_userid function.
@@ -49,7 +55,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
-        $usercontext = \context_user::instance($user->id);
+        $usercontext = context_user::instance($user->id);
         list($entryscheduled, $entryinprogress, $entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
 
         // Test.
@@ -70,13 +76,14 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
-        $usercontext = \context_user::instance($user->id);
+        $usercontext = context_user::instance($user->id);
         list($entryscheduled, $entryinprogress, $entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
         $this->export_context_data_for_user($user->id, $usercontext, 'block_my_external_backup_restore_courses');
-        $writer = \core_privacy\local\request\writer::with_context($usercontext);
+        $writer = writer::with_context($usercontext);
         $data = $writer->get_data([get_string('pluginname', 'block_my_external_backup_restore_courses')]);
         $this->assertTrue($writer->has_any_data());
-        $this->assertInstanceOf('stdClass', $data);
+        $this->assertInstanceOf('stdClass'
+, $data);
         $this->assertTrue(property_exists($data, 'restore_course_records'));
         $this->assertCount(4, $data->restore_course_records);
         foreach ($data->restore_course_records as $restorecourserecord) {
@@ -85,10 +92,11 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         // Course_context.
         $courseperformedcontext = context_course::instance($entryperformed->courseid);
         $this->export_context_data_for_user($user->id, $courseperformedcontext , 'block_my_external_backup_restore_courses');
-        $writer = \core_privacy\local\request\writer::with_context($courseperformedcontext);
+        $writer = writer::with_context($courseperformedcontext);
         $data = $writer->get_data([get_string('pluginname', 'block_my_external_backup_restore_courses')]);
         $this->assertTrue($writer->has_any_data());
-        $this->assertInstanceOf('stdClass', $data);
+        $this->assertInstanceOf('stdClass'
+, $data);
         $this->assertTrue(property_exists($data, 'restore_course_records'));
         $this->assertCount(1, $data->restore_course_records);
         foreach ($data->restore_course_records as $restorecourserecord) {
@@ -105,13 +113,14 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
-        $usercontext = \context_user::instance($user->id);
+        $usercontext = context_user::instance($user->id);
         list($entryscheduled, $entryinprogress, $entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
         $this->export_all_data_for_user($user->id, 'block_my_external_backup_restore_courses');
-        $writer = \core_privacy\local\request\writer::with_context($usercontext);
+        $writer = writer::with_context($usercontext);
         $data = $writer->get_data([get_string('pluginname', 'block_my_external_backup_restore_courses')]);
         $this->assertTrue($writer->has_any_data());
-        $this->assertInstanceOf('stdClass', $data);
+        $this->assertInstanceOf('stdClass'
+, $data);
         $this->assertTrue(property_exists($data, 'restore_course_records'));
         $this->assertCount(4, $data->restore_course_records);
         foreach ($data->restore_course_records as $restorecourserecord) {
@@ -121,10 +130,11 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         $courseperformedcontext = context_course::instance($entryperformed->courseid);
         $this->export_context_data_for_user($user->id, $courseperformedcontext,
                 'block_my_external_backup_restore_courses');
-        $writer = \core_privacy\local\request\writer::with_context($courseperformedcontext);
+        $writer = writer::with_context($courseperformedcontext);
         $data = $writer->get_data([get_string('pluginname', 'block_my_external_backup_restore_courses')]);
         $this->assertTrue($writer->has_any_data());
-        $this->assertInstanceOf('stdClass', $data);
+        $this->assertInstanceOf('stdClass'
+, $data);
         $this->assertTrue(property_exists($data, 'restore_course_records'));
         $this->assertCount(1, $data->restore_course_records);
         foreach ($data->restore_course_records as $restorecourserecord) {
@@ -141,7 +151,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
-        $usercontext = \context_user::instance($user->id);
+        $usercontext = context_user::instance($user->id);
         list($entryscheduled, $entryinprogress, $entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
         $courseperformedcontext = context_course::instance($entryperformed->courseid);
         $contextlist = provider::get_contexts_for_userid($user->id);
@@ -153,7 +163,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         $contextlist = provider::get_contexts_for_userid($user->id);
         $this->assertCount(1, $contextlist);// Inprogress state not deleted.
         $this->export_context_data_for_user($user->id, $usercontext, 'block_my_external_backup_restore_courses');
-        $writer = \core_privacy\local\request\writer::with_context($usercontext);
+        $writer = writer::with_context($usercontext);
         $data = $writer->get_data([get_string('pluginname', 'block_my_external_backup_restore_courses')]);
         $this->assertTrue($writer->has_any_data());
         $this->assertInstanceOf('stdClass', $data);
@@ -174,7 +184,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
-        $usercontext = \context_user::instance($user->id);
+        $usercontext = context_user::instance($user->id);
         list($entryscheduled, $entryinprogress, $entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
         $courseperformedcontext = context_course::instance($entryperformed->courseid);
         $userapproveduserlist = new approved_userlist($usercontext, 'block_user_session', [$user->id]);
@@ -188,7 +198,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         $contextlist = provider::get_contexts_for_userid($user->id);
         $this->assertCount(1, $contextlist);
         $this->export_context_data_for_user($user->id, $usercontext, 'block_my_external_backup_restore_courses');
-        $writer = \core_privacy\local\request\writer::with_context($usercontext);
+        $writer = writer::with_context($usercontext);
         $data = $writer->get_data([get_string('pluginname', 'block_my_external_backup_restore_courses')]);
         $this->assertTrue($writer->has_any_data());
         $this->assertInstanceOf('stdClass', $data);
@@ -211,11 +221,11 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
-        $usercontext = \context_user::instance($user->id);
+        $usercontext = context_user::instance($user->id);
         list($entryscheduled, $entryinprogress, $entryperformed, $entryerror) = $this->create_backuprestore_entries($user);
         $courseperformedcontext = context_course::instance($entryperformed->courseid);
         $approvedcontextlist = new \core_privacy\tests\request\approved_contextlist(
-                \core_user::get_user($user->id),
+                core_user::get_user($user->id),
                 'block_external_backup_restore_courses',
                 [$usercontext->id, $courseperformedcontext->id]
         );
@@ -225,7 +235,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         $contextlist = provider::get_contexts_for_userid($user->id);
         $this->assertCount(1, $contextlist);
         $this->export_context_data_for_user($user->id, $usercontext, 'block_my_external_backup_restore_courses');
-        $writer = \core_privacy\local\request\writer::with_context($usercontext);
+        $writer = writer::with_context($usercontext);
         $data = $writer->get_data([get_string('pluginname', 'block_my_external_backup_restore_courses')]);
         $this->assertTrue($writer->has_any_data());
         $this->assertInstanceOf('stdClass', $data);
@@ -240,10 +250,10 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
 
     /**
      * create_backuprestore_entries usefull to test
-     * @param stdClass $user
+     * @param  stdClass $user
      * @throws coding_exception
      */
-    private function create_backuprestore_entries(stdClass $user) {
+    private function create_backuprestore_entries( stdClass $user) {
         $courseperformed = $this->getDataGenerator()->create_course();
         $entryscheduled = $this->getDataGenerator()->get_plugin_generator('block_my_external_backup_restore_courses')
             ->create_backup_restore_entry($user->id, $courseperformed->id + 1, $courseperformed->category);
