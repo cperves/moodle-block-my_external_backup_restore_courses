@@ -1,4 +1,9 @@
 # CHANGES
+* 2023-05-10
+  * trim key of moodle external config setting to prevent empty domain and resulting bug
+  * php 8.1 deprecated corrections
+  * use namespace to have unique test while using phpunit.xml in git CI
+  * behat test on itself : moodle is course server and course client to preform behat tests
 * 2023-02-17
   * new 4.0 version
   * courses are backup/restores with an admin user enabling to simplify requester capabilities
