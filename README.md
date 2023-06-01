@@ -3,6 +3,8 @@
 my_external_backup_restore_courses is a Moodle block that enable a user to restore courses from external moodles
 this block must be installed in each moodle course clients and course servers involved
 
+Moodles must be on the same major version otherwise it will not function well.
+Additional plugins should be the same on all Moodle platforms involved.
 ## Features
   * enable a user to program course restoration, where courses comes from external moodles
   * depending of his role capabilities he can restore courses with user datas
@@ -103,6 +105,19 @@ On Site administration -> Server -> Scheduled tasks
   * define the role that the requester will have in the restored course
   * define the role in which the user will be re enrolled to course through the given button in the backup external course button
 
+## Troubles
+In case of troubles with message "error/site name can't be retrieved for ..."
+* check that the token is correct and that external_moodles is correctly filled in plugin settings
+* check that your https configuration is correct in web server including valid ssl certificate
+* you can test the webservice with url :
+  * `https://mywebsite/webservice/rest/server.php?wstoken=xxxxxxxxxxxxxxx&moodlewsrestformat=json&wsfunction=block_my_external_backup_restore_courses_get_courses&username=USERNAME&concernedroles=AROLE
+    * will return the list of remote courses
+    * for user with username USERNAME
+    * who has AROLE role in courses
+* `https://mywebsite/webservice/rest/server.php?wstoken=XXXXXXXXXXXXXXX&moodlewsrestformat=json&wsfunction=block_my_external_backup_restore_courses_get_courses_zip&username=USERNAME&courseid=COURSEID`
+    * will return {"filename":"", "filerecord":XXXXXXX}
+    * for user USERNAME
+    * in course COURSEID
 
 ## Contributions
 Contributions of any form are welcome. Github pull requests are preferred.
