@@ -105,7 +105,7 @@ On Site administration -> Server -> Scheduled tasks
   * define the role that the requester will have in the restored course
   * define the role in which the user will be re enrolled to course through the given button in the backup external course button
 
-## Troubles
+## Troubleshooting
 In case of troubles with message "error/site name can't be retrieved for ..."
 * check that the token is correct and that external_moodles is correctly filled in plugin settings
 * check that your https configuration is correct in web server including valid ssl certificate
@@ -118,6 +118,11 @@ In case of troubles with message "error/site name can't be retrieved for ..."
     * will return {"filename":"", "filerecord":XXXXXXX}
     * for user USERNAME
     * in course COURSEID
+## if curl requests seems to be blocked
+* Go to HttpSettings of the moodles
+  * Go to Administration -> Security -> HTTP security
+  * check settings
+  * and above all check curlsecurityblockedhosts content, you maybe have to had remote moodle ip
 
 ## Contributions
 Contributions of any form are welcome. Github pull requests are preferred.
