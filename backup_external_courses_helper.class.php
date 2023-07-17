@@ -26,6 +26,7 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
+require_once($CFG->dirroot.'/backup/util/includes/backup_includes.php');
 
 abstract class backup_external_courses_helper {
 
@@ -49,7 +50,7 @@ abstract class backup_external_courses_helper {
     public static $filename = '';
     public static $filerecordid = 0;
     public static $settingsnouserdatas = array(
-        // 'users' => "0" not set because of the chosen mode
+        'users' => "0" ,
         "storage" => "2" ,
         "max_kept" => "1",
         "activities" => "1" ,
@@ -58,7 +59,7 @@ abstract class backup_external_courses_helper {
         "role_assignments" => "0",
         "comments" => "1",
         "logs" => "0",
-        "histories" => "0"
+        "histories" => "0",
     );
     public static $settingsuserdatas = array(
         'users'              => "1",
@@ -128,7 +129,7 @@ abstract class backup_external_courses_helper {
         $customsettings = (object)$customsettings;
         $bc = new backup_controller(backup::TYPE_1COURSE, $course->id, backup::FORMAT_MOODLE,
             backup::INTERACTIVE_NO,
-            $withuserdatas? backup::MODE_GENERAL : backup::MODE_HUB,
+            $withuserdatas? backup::MODE_GENERAL : backup::MODE_GENERAL,
             get_admin()->id);
 
         try {

@@ -24,6 +24,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
+// Can't require_once backup_includes because it trigger a bug with variable block override by a deep require_once
+// require_once($CFG->dirroot.'/backup/util/includes/backup_includes.php');
+
 function xmldb_block_my_external_backup_restore_courses_upgrade($oldversion=0) {
     global $DB, $CFG;
     if ($oldversion < 2019052302) {
@@ -84,5 +89,16 @@ function xmldb_block_my_external_backup_restore_courses_upgrade($oldversion=0) {
         }
         upgrade_block_savepoint(true, $newversion, 'my_external_backup_restore_courses');
     }
-    return true;
+    $newversion = 2023061600;
+    if($oldversion < $newversion) {
+        $dbman = $DB->get_manager();
+        $table = new xmldb_table('block_external_backuprestore');
+        $field = new xmldb_field('enrolmentmode', XMLDB_TYPE_INTEGER, '1',
+            null, XMLDB_NOTNULL, null, 2); // can't use backup::ENROL_ALWAYS because of require_once trouble
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_block_savepoint(true, 2023061600, 'my_external_backup_restore_courses');
+    }
+        return true;
 }

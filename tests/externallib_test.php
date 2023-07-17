@@ -25,6 +25,7 @@
 namespace block_my_external_backup_restore_courses;
 
 global $CFG;
+
 use backup;
 use block_my_external_backup_restore_courses_external;
 use block_my_external_backup_restore_courses_task;
@@ -50,7 +51,8 @@ class externallib_test extends externallib_advanced_testcase {
     private $defaultcategory;
     private $coursecategory;
     private $editingteacheruser;
-    private $studentuser;
+    private $studentuser1;
+    private $studentuser2;
     private $wsuser;
     private $wsrole;
     private $forum;
@@ -93,6 +95,7 @@ class externallib_test extends externallib_advanced_testcase {
     /**
      * @dataProvider username_provider
      */
+
     public function test_get_courses_zip_withuserdatas($username){
         $this->setUser($this->wsuser);
         $coursezip = block_my_external_backup_restore_courses_external::get_courses_zip($username,
@@ -110,32 +113,66 @@ class externallib_test extends externallib_advanced_testcase {
         $this->assertEquals('block_my_external_backup_restore_courses', $storefile->get_source());
     }
 
-    /**
-     * @dataProvider username_provider
-     */
-    public function test_restore_course($username){
+
+    public function test_restore_course_in_categories() {
+        global $PAGE, $DB;
         $coursesincoursecategory = get_courses($this->coursecategory->id);
         $coursesindefaultcategory = get_courses($this->defaultcategory->id);
         $this->assertCount(1, $coursesincoursecategory);
         $this->assertCount(0, $coursesindefaultcategory);
-        $this->restore_course($username, 0);
+        $this->restore_course(0, false, backup::ENROL_NEVER);
         $coursesincoursecategory = get_courses($this->coursecategory->id);
         $coursesindefaultcategory = get_courses($this->defaultcategory->id);
         $this->assertCount(1, $coursesincoursecategory);
         $this->assertCount(1, $coursesindefaultcategory);
-        $resroredcourseid = $this->restore_course($username, $this->coursecategory->id);
+        $this->restore_course($this->coursecategory->id, false, backup::ENROL_NEVER);
         $coursesincoursecategory = get_courses($this->coursecategory->id);
         $coursesindefaultcategory = get_courses($this->defaultcategory->id);
         $this->assertCount(2, $coursesincoursecategory);
         $this->assertCount(1, $coursesindefaultcategory);
+    }
+
+    /**
+     * @dataProvider enrolmode_withoutuserdatas_provider
+     */
+    public function test_restore_course_withoutuserdatas($enrolmentmode){
+        global $DB;
+        $restoredcourseid = $this->restore_course(0, false, $enrolmentmode);
         // Check that user datas are here.
         // Pass as admin to check course datas.
         $this->setAdminUser();
-        $coursecontext = context_course::instance($resroredcourseid);
+        $coursecontext = context_course::instance($restoredcourseid);
         $enrollees = get_enrolled_users($coursecontext);
-        $this->assertCount(1, $enrollees);
+        if($enrolmentmode == backup::ENROL_ALWAYS) {
+            // User userstudent1 enrolled by cohort
+            // editingteacher  enrolled as requester
+            $this->assertCount(2, $enrollees);
+        } else {
+            $this->assertCount(1, $enrollees); // Requester is manually enrolled
+        }
         $this->assertNotFalse(array_search($this->editingteacheruser, $enrollees));
-        $forum = forum_get_course_forum($resroredcourseid, 'news');
+        $enrolleeswithmethod =
+            $DB->get_records_sql(
+                'select ue.userid,e.enrol from {user_enrolments} ue inner join {enrol} e on e.id=ue.enrolid where courseid=:courseid',
+                array('courseid' => $restoredcourseid)
+            );
+        if($enrolmentmode == backup::ENROL_ALWAYS) {
+            $this->assertCount(2, $enrolleeswithmethod);
+            $this->assertNotFalse(array_search($this->editingteacheruser->id, array_keys($enrolleeswithmethod)));
+            $this->assertNotFalse(array_search($this->studentuser1->id, array_keys($enrolleeswithmethod)));
+            $this->assertFalse(array_search($this->studentuser2->id, array_keys($enrolleeswithmethod)));
+        } else {
+            $this->assertCount(1, $enrolleeswithmethod);
+            $this->assertNotFalse(array_search($this->editingteacheruser->id, array_keys($enrolleeswithmethod)));
+        }
+
+        $enrolinstances = enrol_get_instances($restoredcourseid, true);
+        if($enrolmentmode == backup::ENROL_ALWAYS) {
+            $this->assertCount(2, $enrolinstances);
+        } else {
+            $this->assertCount(1, $enrolinstances);
+        }
+        $forum = forum_get_course_forum($restoredcourseid, 'news');
         $this->assertNotFalse($forum);
         $forumcm = get_course_and_cm_from_instance($forum->id, 'forum');
         $forumcm = $forumcm[1];
@@ -144,31 +181,55 @@ class externallib_test extends externallib_advanced_testcase {
     }
 
     /**
-     * @dataProvider username_provider
+     * @dataProvider enrolmode_withuserdatas_provider
      */
-    public function test_restore_course_withuserdatas($username){
+
+    public function test_restore_course_withuserdatas($enrolmentmode){
         global $DB;
         set_config('backup_general_users', 1, 'backup');
         $coursesincoursecategory = get_courses($this->coursecategory->id);
         $coursesindefaultcategory = get_courses($this->defaultcategory->id);
         $this->assertCount(1, $coursesincoursecategory);
         $this->assertCount(0, $coursesindefaultcategory);
-        $resroredcourseid = $this->restore_course($username, 0, true);
+        $this->setAdminUser();
+        $restoredcourseid = $this->restore_course(0, true, $enrolmentmode);
         // Check that user datas are here.
         // Pass as admin to check course datas.
         $this->setAdminUser();
-        $coursecontext = context_course::instance($resroredcourseid);
+        $coursecontext = context_course::instance($restoredcourseid);
         $enrollees = get_enrolled_users($coursecontext);
-        $this->assertCount(2, $enrollees);
-        $this->assertNotFalse(array_search($this->studentuser, $enrollees));
-        $forum = forum_get_course_forum($resroredcourseid, 'news');
+        $this->assertCount(3, $enrollees);
+        $this->assertNotFalse(array_search($this->editingteacheruser, $enrollees));
+        $this->assertNotFalse(array_search($this->studentuser1, $enrollees));
+        $enrolinstances = enrol_get_instances($restoredcourseid, true);
+        if ($enrolmentmode == backup::ENROL_NEVER) {
+            $this->assertCount(1, $enrolinstances);
+        } else {
+            $this->assertCount(2, $enrolinstances);
+        }
+        $enrolleeswithmethod =
+            $DB->get_records_sql(
+                'select ue.userid,e.enrol from {user_enrolments} ue inner join {enrol} e on e.id=ue.enrolid where courseid=:courseid',
+                array('courseid' => $restoredcourseid)
+            );
+        $this->assertCount(3, $enrolleeswithmethod);
+        $this->assertNotFalse(array_search($this->editingteacheruser->id, array_keys($enrolleeswithmethod)));
+        $this->assertNotFalse(array_search($this->studentuser1->id, array_keys($enrolleeswithmethod)));
+        $this->assertEquals('manual',$enrolleeswithmethod[$this->editingteacheruser->id]->enrol);
+        $this->assertEquals('manual',$enrolleeswithmethod[$this->studentuser2->id]->enrol);
+        if ($enrolmentmode == backup::ENROL_NEVER) {
+            $this->assertEquals('manual', $enrolleeswithmethod[$this->studentuser1->id]->enrol);
+        } else {
+            $this->assertEquals('cohort', $enrolleeswithmethod[$this->studentuser1->id]->enrol);
+        }
+        $forum = forum_get_course_forum($restoredcourseid, 'news');
         $this->assertNotFalse($forum);
         $forumcm = get_course_and_cm_from_instance($forum->id, 'forum');
         $forumcm = $forumcm[1];
         $discussions = forum_get_discussions($forumcm);
         $this->assertNotFalse($discussions);
         $this->assertCount(1, $discussions);
-        $this->assertNotFalse(forum_get_user_posts($forum->id, $this->studentuser->id));
+        $this->assertNotFalse(forum_get_user_posts($forum->id, $this->studentuser1->id));
     }
 
     protected function setUp() : void {
@@ -176,6 +237,8 @@ class externallib_test extends externallib_advanced_testcase {
         global $DB, $CFG;
         $this->resetAfterTest(true);
         $this->preventResetByRollback(); // Logging waits till the transaction gets committed.
+        $CFG->enrol_plugins_enabled = 'cohort,manual';
+        $cohortplugin = enrol_get_plugin('cohort');
         $this->datagenerator = $this->getDataGenerator();
         $coursecreatorrole = $DB->get_record('role', array('shortname' => 'coursecreator'));
         $this->defaultcategory = $this->datagenerator->create_category(array('idnumber' => 'defaultcat'));
@@ -200,17 +263,28 @@ class externallib_test extends externallib_advanced_testcase {
         assign_capability('moodle/restore:restorecourse', CAP_ALLOW, $coursecreatorrole->id, $systemcontext, true);
         accesslib_clear_all_caches_for_unit_testing();
         // Courses datas.
+        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
         $editingteacherrecord = new  stdClass();
         $editingteacherrecord->username='editingteacher1';
         $this->editingteacheruser = $this->datagenerator->create_user($editingteacherrecord);
-        $this->studentuser = $this->datagenerator->create_user();
+        $this->studentuser1 = $this->datagenerator->create_user();
+        $this->studentuser2 = $this->datagenerator->create_user();
         $this->course1 = $this->datagenerator->create_course(array('category' => $this->coursecategory->id));
+        $cohortrecord = new \stdClass();
+        $cohortrecord->contextid = \context_system::instance()->id;
+        $cohortrecord->name = 'The loneliest';
+        $cohortrecord->idnumber = 'loneliestcohort';
+        $cohortrecord->description = 'You\'ll be the sadiest part of me...';
+        $cohortrecord->descriptionformat = FORMAT_HTML;
+        $cohort = $this->getDataGenerator()->create_cohort($cohortrecord);
+        cohort_add_member($cohort->id, $this->studentuser1->id);
+        $cohortplugin->add_instance($this->course1, array('customint1' => $cohort->id,'roleid' => $studentrole->id));
         $this->datagenerator->create_module('forum', array(
             'course' => $this->course1->id));
         $this->forum = forum_get_course_forum($this->course1->id, 'news');
         $this->datagenerator->role_assign($coursecreatorrole->id, $this->editingteacheruser->id);
-        $this->datagenerator->enrol_user($this->editingteacheruser->id, $this->course1->id, 'editingteacher');
-        $this->datagenerator->enrol_user($this->studentuser->id, $this->course1->id, 'student');
+        $this->datagenerator->enrol_user($this->editingteacheruser->id, $this->course1->id, 'editingteacher', 'manual');
+        $this->datagenerator->enrol_user($this->studentuser2->id, $this->course1->id, 'student', 'manual');
         // Disable all loggers.
         $CFG->backup_error_log_logger_level = backup::LOG_NONE;
         $CFG->backup_output_indented_logger_level = backup::LOG_NONE;
@@ -227,7 +301,7 @@ class externallib_test extends externallib_advanced_testcase {
      * @return mixed
      * @throws invalid_response_exception
      */
-    private function restore_course($username, $internalcategory, $withuserdatas=false) {
+    private function restore_course($internalcategory, $withuserdatas,$enrolmentmode) {
         global $DB, $CFG;
         // Add course to courses to restore
         $datas = new  stdClass();
@@ -238,7 +312,9 @@ class externallib_test extends externallib_advanced_testcase {
         $datas->externalmoodletoken = 'atoken';
         $datas->internalcategory = $internalcategory;
         $datas->status = block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED;
+        $datas->enrolmentmode = $enrolmentmode;
         $datas->timecreated = time();
+        $datas->withuserdatas = $withuserdatas;
         $taskid = $DB->insert_record('block_external_backuprestore', $datas);
         // retrieve created task
         $tasks = block_my_external_backup_restore_courses_task_helper::retrieve_tasks(empty($internalcategory) ? $this->defaultcategory->id : $internalcategory);
@@ -253,7 +329,7 @@ class externallib_test extends externallib_advanced_testcase {
         $storefile = $fs->get_file_by_id($file['filerecordid']);
         $storefile->copy_content_to($CFG->tempdir . DIRECTORY_SEPARATOR . "backup" . DIRECTORY_SEPARATOR
             . block_my_external_backup_restore_courses_task_helper::BACKUP_FILENAME);
-        $restoredcourseid = $taskobject->restore_course_from_backup_file($this->defaultcategory->id, $withuserdatas);
+        $restoredcourseid = $taskobject->restore_course_from_backup_file($this->defaultcategory->id, $withuserdatas, $enrolmentmode);
         $DB->delete_records('block_external_backuprestore', array('id' => $taskid));
         return $restoredcourseid;
     }
@@ -275,10 +351,26 @@ class externallib_test extends externallib_advanced_testcase {
         $record = new stdClass();
         $record->discussion = $discussion->id;
         $record->parent = $discussion->firstpost;
-        $record->userid = $this->studentuser->id;
+        $record->userid = $this->studentuser1->id;
         $record->created = $record->modified = time();
         $forumgenerator->create_post($record);
 
+    }
+
+    // Provider.
+    public function enrolmode_withuserdatas_provider(): array {
+        return [
+            [backup::ENROL_ALWAYS],
+            [backup::ENROL_NEVER],
+            [backup::ENROL_WITHUSERS],
+        ];
+    }
+
+    public function enrolmode_withoutuserdatas_provider(): array {
+        return [
+            [backup::ENROL_ALWAYS],
+            [backup::ENROL_NEVER],
+        ];
     }
 
     // Provider.

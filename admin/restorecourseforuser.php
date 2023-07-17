@@ -18,6 +18,7 @@ admin_externalpage_setup('my_external_backup_restore_courses_restorecourseforuse
 
 
 $restorecourseforuserform= new block\my_external_backup_restore_courses\admin\restorecourseforuser_form();
+$PAGE->requires->js(new moodle_url('/blocks/my_external_backup_restore_courses/module.js'));
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('adminrestorecourseforuser','block_my_external_backup_restore_courses'));
 if ($data = $restorecourseforuserform->get_data()) {

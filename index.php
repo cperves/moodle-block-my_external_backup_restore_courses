@@ -26,6 +26,7 @@
 
 require('../../config.php');
 require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/locallib.php');
+require_once($CFG->dirroot.'/backup/util/includes/backup_includes.php');
 
 require_login();
 $urltokenchecker = $CFG->wwwroot.'/blocks/my_external_backup_restore_courses/ajax/token_checker.php';
@@ -38,7 +39,7 @@ $PAGE->set_pagelayout('report');
 $PAGE->set_title(get_string('externalmoodlecourselist',
     'block_my_external_backup_restore_courses'));
 $PAGE->set_heading(get_string('externalmoodlecourselist', 'block_my_external_backup_restore_courses'));
-
+$PAGE->requires->js(new moodle_url('module.js'));
 echo $OUTPUT->header();
 echo $OUTPUT->box_start('my_external_backup_restore_course_refresh');
 echo html_writer::link('#', html_writer::empty_tag('img',
@@ -106,6 +107,7 @@ if ($submit) {
                     $datas->externalmoodleurl = $externalmoodleurl;
                     $datas->internalcategory = optional_param('originalcategory_'.$selectedcourse, 0, PARAM_INT);
                     $datas->withuserdatas = optional_param('withuserdatas_'.$selectedcourse, 0, PARAM_INT);
+                    $datas->enrolmentmode = optional_param('enrolmentmode_'.$selectedcourse, backup::ENROL_ALWAYS, PARAM_INT);
                     $datas->externalcoursename = optional_param('coursename_'.$selectedcourse, '', PARAM_TEXT);
                     $datas->status = block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED;
                     $datas->timecreated = time();
@@ -116,6 +118,7 @@ if ($submit) {
                     $datas = $dbinfo;
                     $neworiginalcategory = optional_param('originalcategory_'.$selectedcourse, 0, PARAM_INT);
                     $newwithuserdatas = optional_param('withuserdatas_'.$selectedcourse, 0, PARAM_INT);
+                    $newenrolmentmode = optional_param('enrolmentmode_'.$selectedcourse, backup::ENROL_ALWAYS, PARAM_INT);
                     $currentoriginalstatus = $datas->status;
 
                     // Change status only of !onlyremoteinstance && status from performed to scheduled.
@@ -132,11 +135,18 @@ if ($submit) {
                             && $datas->status == block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED
                             && !$onlyoneremoteinstance
                         )
-                        || ($newwithuserdatas != $datas->withuserdatas
+                        || ( ($newwithuserdatas != $datas->withuserdatas || $newenrolmentmode != $datas->enrolmentmode)
                             && $currentoriginalstatus == block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED)
                     ) {
                         $datas->timemodified = time();
                         $datas->internalcategory = $neworiginalcategory;
+                        $datas->withuserdatas = $newwithuserdatas;
+                        if (!$datas->withuserdatas) {
+                            // force enrolmentmode
+                            $datas->enrolmentmode = backup::ENROL_ALWAYS;
+                        } else {
+                            $datas->enrolmentmode = $newenrolmentmode;
+                        }
                         $DB->update_record('block_external_backuprestore', $datas);
                     }
                 }
@@ -257,6 +267,10 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                     if (has_capability('block/my_external_backup_restore_courses:can_restore_user_datas',$systemcontext)) {
                         $coursetable->head[] = get_string('withuserdatasheadtable', 'block_my_external_backup_restore_courses');
                     }
+                    if (has_capability('block/my_external_backup_restore_courses:can_restore_user_datas',$systemcontext)) {
+                        $coursetable->head[] = get_string('enrolmentmodeheadtable', 'block_my_external_backup_restore_courses');
+                    }
+                    $coursetable->head[] = get_string('status');
                     $coursetable->head[] = get_string('status');
                     $coursetable->head[] = get_string('nextruntime', 'block_my_external_backup_restore_courses');
                     if ($onlyoneremoteinstance) {
@@ -408,6 +422,13 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                                 && $firstscheduledinfobyotherusersinfos->withuserdatas != 0 ? true : false)
                                 : false)
                         );
+                        $enrolmentmodechoice = ($scheduledinfo ? $scheduledinfo->enrolmentmode :
+                            ($scheduledinfobyotherusers ?
+                                (property_exists($firstscheduledinfobyotherusersinfos,'enrolmentmode') ?
+                                    $firstscheduledinfobyotherusersinfos->enrolmentmode :
+                                    backup::ENROL_ALWAYS)
+                                : backup::ENROL_ALWAYS)
+                        );
                         if (!$originalcategory
                             || (
                                 $scheduledinfo && $scheduledinfo->status
@@ -440,7 +461,17 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                             $withuserdatastablecell->text .= html_writer::checkbox('withuserdatas_'.$course->id,
                                 1,
                                 $withuserdataschecked,
-                                '');
+                                '',
+                                array('onclick' => 'changeEnrolmentModeOptions('.$course->id.');')
+                            );
+                            $enrolmentmodetablecell = new html_table_cell();
+                            $enrolmentmodeoptions = array(
+                                backup::ENROL_NEVER     => get_string('rootsettingenrolments_never', 'backup'),
+                                backup::ENROL_WITHUSERS => get_string('rootsettingenrolments_withusers', 'backup'),
+                                backup::ENROL_ALWAYS    => get_string('rootsettingenrolments_always', 'backup'),
+                            );
+                            $enrolmentmodetablecell->text .= html_writer::select($enrolmentmodeoptions,'enrolmentmode_'.$course->id,
+                                $enrolmentmodechoice, false);
                         }
                         $statetablecell = new html_table_cell();
                         $statetablecell->attributes['class'] = 'wrap';
@@ -653,6 +684,7 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                         if (has_capability('block/my_external_backup_restore_courses:can_restore_user_datas',
                             $systemcontext)) {
                             array_push($tablecells, $withuserdatastablecell);
+                            array_push($tablecells, $enrolmentmodetablecell);
                         }
                         array_push($tablecells, $statetablecell, $nextruntimetablecell, $executiontimetablecell);
                         if (!$onlyoneremoteinstance) {

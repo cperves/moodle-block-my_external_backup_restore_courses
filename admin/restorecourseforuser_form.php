@@ -10,10 +10,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace block\my_external_backup_restore_courses\admin;
+use backup;
 require_once("$CFG->libdir/formslib.php");
 
 class restorecourseforuser_form extends \moodleform {
     function definition() {
+        global $CFG;
+        require_once($CFG->dirroot.'/backup/util/includes/backup_includes.php');
         $mform = &$this->_form;
         $staticnoplfelement = \html_writer::start_tag('div', array('class' => 'notice'))
             .get_string('noexternalmoodleconnected', 'block_my_external_backup_restore_courses')
@@ -49,8 +52,16 @@ class restorecourseforuser_form extends \moodleform {
                 get_string('keepcategory', 'block_my_external_backup_restore_courses'));
             $mform->addElement('checkbox', 'withuserdatas',
                 get_string('withuserdatas', 'block_my_external_backup_restore_courses'));
+            $enrolmentmodeoptions = array(
+                backup::ENROL_NEVER     => get_string('rootsettingenrolments_never', 'backup'),
+                backup::ENROL_WITHUSERS => get_string('rootsettingenrolments_withusers', 'backup'),
+                backup::ENROL_ALWAYS    => get_string('rootsettingenrolments_always', 'backup'),
+            );
+            $mform->addElement('select', 'enrolmentmode',
+                get_string('enrolmentmode', 'block_my_external_backup_restore_courses'), $enrolmentmodeoptions);
+            $mform->setDefault('enrolmentmode', backup::ENROL_ALWAYS);
             $mform->addElement('submit', 'submit', get_string('planifyrestore',
-                'block_my_external_backup_restore_courses'));
+                'block_my_external_backup_restore_courses'), array('onclick' => 'changeEnrolmentModeOptions(-1);'));
         } else {
             $mform->addElement('static', 'noexternalmoodles', $staticnoplfelement);
 

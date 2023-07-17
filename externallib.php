@@ -57,7 +57,8 @@ class block_my_external_backup_restore_courses_external extends external_api {
         }
         // Admin will backup course to have the necessary capabilities.
         // Choose this fact to simplify capabilities requirements and to avoid to set to much capabilities to roles.
-        $res = backup_external_courses_helper::run_external_backup($params['courseid'], get_admin()->id, $withuserdatas);
+        $res = backup_external_courses_helper::run_external_backup(
+            $params['courseid'], get_admin()->id, $withuserdatas);
         if (empty($res) || $res === false) {
             throw new Exception('Backup course can\'t be created');
         }

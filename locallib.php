@@ -250,7 +250,7 @@ class block_my_external_backup_restore_courses_tools{
         if (!isset($resp)) {
             throw new Exception($resp);
         }
-        if (isset($resp->errorcode)) {
+        if (isset($resp->errorcode) || isset($resp->exception)) {
             if ($resp->exception == 'block_my_external_backup_restore_courses_invalid_username_exception') {
                 throw new block_my_external_backup_restore_courses_invalid_username_exception($resp->errorcode);
             }
@@ -507,7 +507,11 @@ abstract class block_my_external_backup_restore_courses_task_helper{
             $taskobject->change_task_status(block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS);
             $result = $taskobject->download_external_backup_courses($username, $task->withuserdatas);
             if ($result) {
-                $result = $taskobject->restore_course_from_backup_file($defaultcategoryid, $task->withuserdatas);
+                $result = $taskobject->restore_course_from_backup_file(
+                    $defaultcategoryid,
+                    $task->withuserdatas,
+                    $task->enrolmentmode
+                );
                 if (!empty($result)) {
                     $taskobject->change_task_status(block_my_external_backup_restore_courses_tools::STATUS_PERFORMED);
                     $taskobject->set_local_courseid($result);
@@ -597,7 +601,10 @@ class block_my_external_backup_restore_courses_task{
         // Serve file.
         return $this->download_backup_course($url);
     }
-    public function restore_course_from_backup_file($defaultcategoryid, $withuserdatas=false) {
+    public function restore_course_from_backup_file(
+        $defaultcategoryid,
+        $withuserdatas=false,
+        $enrolmentmode= backup::ENROL_ALWAYS) {
         global $CFG, $DB;
         $categoryid = $this->task->internalcategory == 0 ? $defaultcategoryid : $this->task->internalcategory;
         require_once($CFG->dirroot . "/backup/util/includes/backup_includes.php");
@@ -645,10 +652,11 @@ class block_my_external_backup_restore_courses_task{
             $customsettings = ($withuserdatas ?
                 backup_external_courses_helper::$settingsuserdatas : backup_external_courses_helper::$settingsnouserdatas
             );
+            $customsettings['enrolments'] = $enrolmentmode;
             $customsettings = (object)$customsettings;
             $rc = new restore_controller(block_my_external_backup_restore_courses_task_helper::BACKUP_TEMPDIRNAME,
                 $courseid, backup::INTERACTIVE_NO,
-                $withuserdatas? backup::MODE_GENERAL : backup::MODE_HUB, $this->task->contractorid , backup::TARGET_NEW_COURSE);
+                $withuserdatas? backup::MODE_GENERAL : backup::MODE_GENERAL, $this->task->contractorid , backup::TARGET_NEW_COURSE);
             // Explicit settings to be not influenced by platform settings.
             foreach ($customsettings as $setting => $value) {
                 if ($rc->get_plan()->setting_exists($setting)) {

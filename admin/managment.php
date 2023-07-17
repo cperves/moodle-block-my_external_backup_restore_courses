@@ -74,7 +74,7 @@ if($submit && $trigger!=0){
      $internalcategory = required_param('internalcategory_'.$trigger, PARAM_INT); 
      $status = required_param('status_'.$trigger, PARAM_INT);;
      $scheduledtask = $DB->get_record('block_external_backuprestore', array('id'=>$trigger));
-     if($scheduledtask->internalcategory != $internalcategory || $scheduledtask->status != $status){
+     if($scheduledtask != false && ($scheduledtask->internalcategory != $internalcategory || $scheduledtask->status != $status)){
           $scheduledtask->internalcategory = $internalcategory;
           $scheduledtask->status = $status;
           $scheduledtask->timemodified = time();
