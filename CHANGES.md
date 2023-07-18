@@ -1,4 +1,9 @@
 # CHANGES
+* 2023-07-17
+  * fix competencies setting only when core_competency_enables
+  * issue [#10](https://github.com/cperves/moodle-block-my_external_backup_restore_courses/pull/10) : thanks [gdozot2](https://github.com/gdozot2)
+* 2023-07-04
+  * withuserdatas mode + enrol mode taking into account
 * 2023-05-10
   * trim key of moodle external config setting to prevent empty domain and resulting bug
   * php 8.1 deprecated corrections

@@ -75,7 +75,6 @@ abstract class backup_external_courses_helper {
         'histories'          => '1',
         'questionbank'       => '1',
         'groups'             => '1',
-        'competencies'       => '1',
         'contentbankcontent' => '1',
         'legacyfiles'        => '1',
         'permissions'       => '1'
@@ -126,7 +125,11 @@ abstract class backup_external_courses_helper {
         global $CFG;
         require_once($CFG->dirroot.'/backup/util/includes/backup_includes.php');
         $customsettings = ($withuserdatas ? self::$settingsuserdatas : self::$settingsnouserdatas);
-        $customsettings = (object)$customsettings;
+        $iscompetencyenabled = get_config('core_competency', 'enabled');
+        if ($iscompetencyenabled) {
+            $customsettings['competencies'] = 1;
+        }
+	$customsettings = (object)$customsettings;
         $bc = new backup_controller(backup::TYPE_1COURSE, $course->id, backup::FORMAT_MOODLE,
             backup::INTERACTIVE_NO,
             $withuserdatas? backup::MODE_GENERAL : backup::MODE_GENERAL,
