@@ -33,9 +33,12 @@ use block_my_external_backup_restore_courses_task_helper;
 use block_my_external_backup_restore_courses_tools;
 use context_course;
 use context_system;
+use core_competency\course_competency;
+use core_competency\user_evidence_competency;
 use external_api;
 use externallib_advanced_testcase;
 use stdClass;
+use core_competency\api;
 
 require_once(__DIR__.'/../locallib.php');
 require_once(__DIR__.'/../externallib.php');
@@ -133,10 +136,11 @@ class externallib_test extends externallib_advanced_testcase {
     }
 
     /**
-     * @dataProvider enrolmode_withoutuserdatas_provider
+     * @dataProvider enrolmode_withoutuserdatas_competencies_provider
      */
-    public function test_restore_course_withoutuserdatas($enrolmentmode){
+    public function test_restore_course_withoutuserdatas($enrolmentmode, $iscompetencyenabled){
         global $DB;
+        $this->set_comptencies($iscompetencyenabled);
         $restoredcourseid = $this->restore_course(0, false, $enrolmentmode);
         // Check that user datas are here.
         // Pass as admin to check course datas.
@@ -178,15 +182,19 @@ class externallib_test extends externallib_advanced_testcase {
         $forumcm = $forumcm[1];
         $discussions = forum_get_discussions($forumcm);
         $this->assertEmpty($discussions);
+        if ($iscompetencyenabled) {
+            $this->check_competencies($restoredcourseid, false);
+        }
     }
 
     /**
-     * @dataProvider enrolmode_withuserdatas_provider
+     * @dataProvider enrolmode_withuserdatas_competencies_provider
      */
 
-    public function test_restore_course_withuserdatas($enrolmentmode){
+    public function test_restore_course_withuserdatas($enrolmentmode, $iscompetencyenabled){
         global $DB;
         set_config('backup_general_users', 1, 'backup');
+        $this->set_comptencies($iscompetencyenabled);
         $coursesincoursecategory = get_courses($this->coursecategory->id);
         $coursesindefaultcategory = get_courses($this->defaultcategory->id);
         $this->assertCount(1, $coursesincoursecategory);
@@ -230,8 +238,44 @@ class externallib_test extends externallib_advanced_testcase {
         $this->assertNotFalse($discussions);
         $this->assertCount(1, $discussions);
         $this->assertNotFalse(forum_get_user_posts($forum->id, $this->studentuser1->id));
+        if ($iscompetencyenabled) {
+            $this->check_competencies($restoredcourseid, true);
+        }
     }
 
+    private function set_comptencies($iscompetencyenabled) {
+        global $DB;
+        if($iscompetencyenabled){
+            set_config('enabled', true, 'core_competency');
+            $dg = $this->getDataGenerator();
+            $lpg = $dg->get_plugin_generator('core_competency');
+            // Framework.
+            $framework = $lpg->create_framework();
+            $comp1 = $lpg->create_competency(array('competencyframeworkid' => $framework->get('id')));
+            // Add competency to course;
+            $this->setAdminUser();
+            api::add_competency_to_course($this->course1->id, $comp1->get('id'));
+            api::grade_competency_in_course($this->course1->id, $this->studentuser1->id, $comp1->get('id'), 1, true);
+            api::grade_competency($this->studentuser1->id, $comp1->get('id'), 1, true);
+            api::grade_competency_in_course($this->course1->id, $this->studentuser1->id,$comp1->get('id'), 2 , true);
+            $usercoursecompetency = api::get_user_competency_in_course($this->course1->id,$this->studentuser1->id, $comp1->get('id'));
+            $this->assertNotEmpty($usercoursecompetency);
+        } else {
+            set_config('enabled', false, 'core_competency');
+        }
+
+    }
+    private function check_competencies($restoredcourseid, $withuserdatas) {
+        $coursecompetencies = course_competency::list_competencies($restoredcourseid);
+        $this->assertCount(1, $coursecompetencies);
+        $competency = array_pop($coursecompetencies);
+        $usercoursecompetency = api::get_user_competency_in_course($restoredcourseid,$this->studentuser1->id, $competency->get('id'));
+        if ($withuserdatas) {
+            $this->assertNotNull($usercoursecompetency->get('grade'));
+        } else {
+            $this->assertNull($usercoursecompetency->get('grade'));
+        }
+    }
     protected function setUp() : void {
         parent::setUp();
         global $DB, $CFG;
@@ -358,18 +402,23 @@ class externallib_test extends externallib_advanced_testcase {
     }
 
     // Provider.
-    public function enrolmode_withuserdatas_provider(): array {
+    public function enrolmode_withuserdatas_competencies_provider(): array {
         return [
-            [backup::ENROL_ALWAYS],
-            [backup::ENROL_NEVER],
-            [backup::ENROL_WITHUSERS],
+            [backup::ENROL_ALWAYS, true],
+            [backup::ENROL_ALWAYS, false],
+            [backup::ENROL_NEVER, true],
+            [backup::ENROL_NEVER, false],
+            [backup::ENROL_WITHUSERS, true],
+            [backup::ENROL_WITHUSERS, false],
         ];
     }
 
-    public function enrolmode_withoutuserdatas_provider(): array {
+    public function enrolmode_withoutuserdatas_competencies_provider(): array {
         return [
-            [backup::ENROL_ALWAYS],
-            [backup::ENROL_NEVER],
+            [backup::ENROL_ALWAYS, true],
+            [backup::ENROL_ALWAYS, false],
+            [backup::ENROL_NEVER, true],
+            [backup::ENROL_NEVER, false],
         ];
     }
 
@@ -377,7 +426,7 @@ class externallib_test extends externallib_advanced_testcase {
     public function username_provider(): array {
         return [
             [self::EDITING_TEACHER_USERNAME],
-            ['']
+            [''],
         ];
     }
 

@@ -515,7 +515,7 @@ abstract class block_my_external_backup_restore_courses_task_helper{
                 if (!empty($result)) {
                     $taskobject->change_task_status(block_my_external_backup_restore_courses_tools::STATUS_PERFORMED);
                     $taskobject->set_local_courseid($result);
-                    $taskobject->notify_success();
+                    $taskobject->notify_success($task->withuserdatas);
                 }
             }
             if (!$result) {
@@ -845,7 +845,7 @@ class block_my_external_backup_restore_courses_task{
             'block_my_external_backup_restore_courses', $langobject);
         return $langobject;
     }
-    public function notify_success() {
+    public function notify_success($withuserdatas=false) {
         global $SITE, $CFG;
         // Current messaging.
         $eventdata = new \core\message\message();
@@ -858,8 +858,13 @@ class block_my_external_backup_restore_courses_task{
         $eventdata->notification = '1';
         $eventdata->contexturl = $CFG->wwwroot;
         $eventdata->contexturlname = $SITE->fullname;
-        $eventdata->fullmessage = get_string('success_mail_main_message',
-            'block_my_external_backup_restore_courses', $this->get_lang_object());
+        $eventdata->fullmessage =
+            ($withuserdatas?
+                get_string('success_mail_main_message_withuserdatas',
+            'block_my_external_backup_restore_courses', $this->get_lang_object()) :
+                get_string('success_mail_main_message',
+            'block_my_external_backup_restore_courses', $this->get_lang_object())
+            );
         $eventdata->fullmessagehtml = str_replace('\n', '<br/>', $eventdata->fullmessage ?? '');
         // For owner.
         $eventdata->userto = $this->get_user();

@@ -129,7 +129,11 @@ abstract class backup_external_courses_helper {
             self::$settingsuserdatas['competencies'] = 1;
         }
         $customsettings = ($withuserdatas ? self::$settingsuserdatas : self::$settingsnouserdatas);
-        $customsettings = (object)$customsettings;
+        $iscompetencyenabled = get_config('core_competency', 'enabled');
+        if ($iscompetencyenabled) {
+            $customsettings['competencies'] = 1;
+        }
+	$customsettings = (object)$customsettings;
         $bc = new backup_controller(backup::TYPE_1COURSE, $course->id, backup::FORMAT_MOODLE,
             backup::INTERACTIVE_NO,
             $withuserdatas? backup::MODE_GENERAL : backup::MODE_GENERAL,
