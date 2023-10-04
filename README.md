@@ -5,6 +5,7 @@ this block must be installed in each moodle course clients and course servers in
 
 Moodles must be on the same major version otherwise it will not function well.
 Additional plugins should be the same on all Moodle platforms involved.
+
 ## Features
   * enable a user to program course restoration, where courses comes from external moodles
   * depending of his role capabilities he can restore courses with user datas
@@ -123,6 +124,8 @@ In case of troubles with message "error/site name can't be retrieved for ..."
   * Go to Administration -> Security -> HTTP security
   * check settings
   * and above all check curlsecurityblockedhosts content, you maybe have to had remote moodle ip
+
+
 
 ## Contributions
 Contributions of any form are welcome. Github pull requests are preferred.

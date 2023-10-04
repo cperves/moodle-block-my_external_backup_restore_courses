@@ -11,7 +11,9 @@
  */
 namespace block\my_external_backup_restore_courses\admin;
 use backup;
+
 require_once("$CFG->libdir/formslib.php");
+
 
 class restorecourseforuser_form extends \moodleform {
     function definition() {

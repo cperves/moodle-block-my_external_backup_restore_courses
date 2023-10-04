@@ -124,10 +124,6 @@ abstract class backup_external_courses_helper {
     public static function launch_automated_backup_delete($course, $withuserdatas=0) {
         global $CFG;
         require_once($CFG->dirroot.'/backup/util/includes/backup_includes.php');
-        $iscompetencyenabled = get_config('core_competency', 'enabled');
-        if ($withuserdatas && $iscompetencyenabled) {
-            self::$settingsuserdatas['competencies'] = 1;
-        }
         $customsettings = ($withuserdatas ? self::$settingsuserdatas : self::$settingsnouserdatas);
         $iscompetencyenabled = get_config('core_competency', 'enabled');
         if ($iscompetencyenabled) {

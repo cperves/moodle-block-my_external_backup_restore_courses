@@ -265,6 +265,7 @@ class externallib_test extends externallib_advanced_testcase {
         }
 
     }
+
     private function check_competencies($restoredcourseid, $withuserdatas) {
         $coursecompetencies = course_competency::list_competencies($restoredcourseid);
         $this->assertCount(1, $coursecompetencies);
@@ -276,6 +277,7 @@ class externallib_test extends externallib_advanced_testcase {
             $this->assertNull($usercoursecompetency->get('grade'));
         }
     }
+
     protected function setUp() : void {
         parent::setUp();
         global $DB, $CFG;
