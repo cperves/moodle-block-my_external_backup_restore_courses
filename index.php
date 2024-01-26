@@ -271,7 +271,6 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                         $coursetable->head[] = get_string('enrolmentmodeheadtable', 'block_my_external_backup_restore_courses');
                     }
                     $coursetable->head[] = get_string('status');
-                    $coursetable->head[] = get_string('status');
                     $coursetable->head[] = get_string('nextruntime', 'block_my_external_backup_restore_courses');
                     if ($onlyoneremoteinstance) {
                         $coursetable->head[] = get_string('executiontimemixed', 'block_my_external_backup_restore_courses');
