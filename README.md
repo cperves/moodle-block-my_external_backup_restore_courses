@@ -5,22 +5,22 @@ this block must be installed in each moodle course clients and course servers in
 
 ## Features
   * enable a user to program course restoration where courses comes from external moodles
-  * possibility to find the original category based on unique category identifier threw plugin settings on database relation (user must hace moodle/course:create in the category context)
-  * restore cours in a default category (user must hace moodle/course:create in that context)
+  * possibility to find the original category based on unique category identifier through plugin settings on database relation (user must have moodle/course:create in the category context)
+  * restore course in a default category (user must have moodle/course:create in that context)
   * a scheduled task will launch remote backups and restorations of these courses
-  * Log and messaging include to notify of succes or failure
+  * Log and messaging included to notify of succes or failure
   * possibilily to restrict to only one restoration by course
 
 ## Security warning
-* This plugin use a capability block/my_external_backup_restore_courses:can_retrieve_courses that enable webservice account to donload backup files of other users
-* To improve security it is strongly recommended to generate token with IPrestriction on server side IPs
+* This plugin uses a capability block/my_external_backup_restore_courses:can_retrieve_courses that enables webservice account to donload backup files of other users
+* To improve security it is strongly recommended to generate token with IP restriction on the server side IPs
 
 ## mnet warning usage
-this plugin may not work in MNet environments fully because the username in that conditions username is not unique
+This plugin may not work in MNet environments fully because the username in that condition's username is not unique.
 
 ## Download
 
-from moodle plugin repository
+From moodle plugin repository
 
 ## Installation
 ### Block installation
