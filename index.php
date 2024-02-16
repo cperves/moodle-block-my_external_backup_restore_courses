@@ -643,13 +643,20 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                             if (!is_null($scheduledinfo->courseid) && $scheduledinfo->status ==
                                     block_my_external_backup_restore_courses_tools::STATUS_PERFORMED
                             ) {
-                                $courseurl = new moodle_url('/course/view.php', array('id' => $scheduledinfo->courseid));
-                                $status = html_writer::start_tag('a',
-                                                array('href' => $courseurl->out(),
-                                                        'class' => $buttonclass)
+                                // Check if restored course exists
+                                $restoredcourse = $DB->get_record('course', array('id' => $scheduledinfo->courseid));
+                                if ($restoredcourse) {
+                                    $courseurl = new moodle_url('/course/view.php', array('id' => $scheduledinfo->courseid));
+                                    $status = html_writer::start_tag('a',
+                                            array('href' => $courseurl->out(),
+                                                'class' => $buttonclass)
                                         ).get_string('status_'.$scheduledinfo->status,
-                                                'block_my_external_backup_restore_courses')
+                                            'block_my_external_backup_restore_courses')
                                         .html_writer::end_tag('a');
+                                } else {
+                                    $status = get_string('nomoreexistingrestoredcourse',
+                                        'block_my_external_backup_restore_courses');
+                                }
                             } else {
                                 $status = html_writer::start_tag('span', array('class' => $buttonclass))
                                             .get_string('status_'.$scheduledinfo->status,

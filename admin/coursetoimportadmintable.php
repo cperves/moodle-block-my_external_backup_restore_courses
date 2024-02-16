@@ -82,7 +82,7 @@ class block_my_external_backup_restore_course_admin_table extends table_sql {
             if (!empty($where)) {
                 $where .= ' and ';
             }
-            $where .= " c.id = $courseidfilter";
+            $where .= " beb.courseid = $courseidfilter";
         }
 
         if (empty($where)) {
@@ -140,9 +140,15 @@ class block_my_external_backup_restore_course_admin_table extends table_sql {
 
 
     function col_courseid(stdClass $row) {
+        global $DB;
         if($row->courseid) {
+            $restoredcourse = $DB->get_record('course', array('id' => $row->courseid));
+            if ($restoredcourse) {
                 return html_writer::link(new moodle_url('/course/view.php',
-                        array('id' => $row->courseid)), $row->courseid);
+                    array('id' => $row->courseid)), $row->courseid);
+            } else {
+                return get_string('courseidXbutdeleted', 'block_my_external_backup_restore_courses', $row->courseid);
+            }
 
         }else{
             return '';

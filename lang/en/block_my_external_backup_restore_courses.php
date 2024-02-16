@@ -150,3 +150,5 @@ $string['planifyrestore'] = 'Planify course restoration';
 $string['userid'] = 'userid';
 $string['externalmoodleurl'] = "Remote moodle url";
 $string['my_external_backup_restore_courses_restorecourseforuser_success'] = 'Course restoration was successfully programmed.';
+$string['nomoreexistingrestoredcourse'] = 'Deleted restored course';
+$string['courseidXbutdeleted'] = '{$a} (deleted)';
