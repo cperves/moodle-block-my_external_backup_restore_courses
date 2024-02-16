@@ -58,7 +58,7 @@ class block_my_external_backup_restore_courses extends block_list {
     }
 
     public function applicable_formats() {
-        return array('all ' => true, 'course-view' => false,
+        return array('all ' => true, 'course-view' => true,
             'mod' => false, 'site' => true , 'my' => true, 'tag' => false);
     }
 
