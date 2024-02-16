@@ -26,9 +26,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2024012600;
-$plugin->release = '3.1.2';
+$plugin->version = 2024021600;
+$plugin->release = '3.1.3';
 $plugin->maturity   = MATURITY_STABLE;
-$plugin->requires = 2022041904;
+$plugin->requires = 2022112807;
 // Full name of the plugin (used for diagnostics).
 $plugin->component = 'block_my_external_backup_restore_courses';
