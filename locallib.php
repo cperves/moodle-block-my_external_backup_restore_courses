@@ -618,10 +618,8 @@ class block_my_external_backup_restore_courses_task{
             $CFG->tempdir = $CFG->dataroot . DIRECTORY_SEPARATOR . 'temp';
         }
         // Look for file.
-        $archivefile = $CFG->tempdir.DIRECTORY_SEPARATOR."backup"
-            .DIRECTORY_SEPARATOR.block_my_external_backup_restore_courses_task_helper::BACKUP_FILENAME;
-        $path = $CFG->tempdir.DIRECTORY_SEPARATOR."backup".DIRECTORY_SEPARATOR
-            .block_my_external_backup_restore_courses_task_helper::BACKUP_TEMPDIRNAME;
+        $archivefile = make_backup_temp_directory('').block_my_external_backup_restore_courses_task_helper::BACKUP_FILENAME;
+        $path = make_backup_temp_directory('').block_my_external_backup_restore_courses_task_helper::BACKUP_TEMPDIRNAME;
         // Unlink path just in case.
         if (file_exists($path)) {
             block_my_external_backup_restore_courses_tools::del_tree($path);
@@ -742,13 +740,13 @@ class block_my_external_backup_restore_courses_task{
         // Check if backup directory exists,if not create it.
         check_dir_exists($CFG->tempdir . '/backup');
         // First ulink just in case.
-        if (file_exists($CFG->tempdir.DIRECTORY_SEPARATOR."backup".DIRECTORY_SEPARATOR
+        if (file_exists(make_backup_temp_directory('')
             .block_my_external_backup_restore_courses_task_helper::BACKUP_FILENAME)) {
-            unlink($CFG->tempdir.DIRECTORY_SEPARATOR."backup".DIRECTORY_SEPARATOR
+            unlink(make_backup_temp_directory('')
                 .block_my_external_backup_restore_courses_task_helper::BACKUP_FILENAME);
         }
 
-        $fp = fopen($CFG->tempdir.DIRECTORY_SEPARATOR."backup".DIRECTORY_SEPARATOR
+        $fp = fopen(make_backup_temp_directory('')
             .block_my_external_backup_restore_courses_task_helper::BACKUP_FILENAME, 'w');
         curl_setopt($ch, CURLOPT_FILE, $fp);
         // Execute curl.
