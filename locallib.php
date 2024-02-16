@@ -524,8 +524,8 @@ abstract class block_my_external_backup_restore_courses_task_helper{
                 $errors->notify_errors();
             }
             // Need to delete temp file success or failed cases.
-            if (file_exists($CFG->tempdir.DIRECTORY_SEPARATOR."backup".DIRECTORY_SEPARATOR.self::BACKUP_FILENAME)) {
-                unlink($CFG->tempdir.DIRECTORY_SEPARATOR."backup".DIRECTORY_SEPARATOR.self::BACKUP_FILENAME);
+            if (file_exists(make_backup_temp_directory('').self::BACKUP_FILENAME)) {
+                unlink(make_backup_temp_directory('').self::BACKUP_FILENAME);
             }
         }
         return true;

@@ -373,7 +373,7 @@ class externallib_test extends externallib_advanced_testcase {
             block_my_external_backup_restore_courses_external::get_courses_zip_returns(), $coursezip);
         $fs = get_file_storage();
         $storefile = $fs->get_file_by_id($file['filerecordid']);
-        $storefile->copy_content_to($CFG->tempdir . DIRECTORY_SEPARATOR . "backup" . DIRECTORY_SEPARATOR
+        $storefile->copy_content_to(make_backup_temp_directory('')
             . block_my_external_backup_restore_courses_task_helper::BACKUP_FILENAME);
         $restoredcourseid = $taskobject->restore_course_from_backup_file($this->defaultcategory->id, $withuserdatas, $enrolmentmode);
         $DB->delete_records('block_external_backuprestore', array('id' => $taskid));
