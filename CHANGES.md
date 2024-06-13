@@ -1,4 +1,7 @@
 # CHANGES
+* 2024-06-13 : 
+ * enable block in courses (spécific usage of a university)
+ * correct notitifcation error while forgotting the defaultcategoryid in settings
 * 2023-07-17
   * fix competencies setting only when core_competency_enables
   * issue [#10](https://github.com/cperves/moodle-block-my_external_backup_restore_courses/pull/10) : thanks [gdozot2](https://github.com/gdozot2)
