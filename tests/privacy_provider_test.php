@@ -62,8 +62,9 @@ class privacy_provider_test extends provider_testcase {
         $contextlist = provider::get_contexts_for_userid($user->id);
         $this->assertCount(2, $contextlist);
         $courseperforedcontext = context_course::instance($entryperformed->courseid);
-        $this->assertContains($usercontext, $contextlist->get_contexts());
-        $this->assertContains($courseperforedcontext, $contextlist->get_contexts());
+        $contextlist = $contextlist->get_contexts();
+        $this->assertContains($usercontext, $contextlist);
+        $this->assertContains($courseperforedcontext, $contextlist);
 
     }
 

@@ -428,7 +428,7 @@ abstract class block_my_external_backup_restore_courses_task_helper{
         $cat = $DB->get_record('course_categories', array('id' => $defaultcategoryid));
         if (!$cat) {
             $errors->add_error(new block_my_external_backup_restore_courses_task_error(null,
-                'defaultcategoryid not defined for my_external_backup_restore_courses plugin, please correct this.'));
+                "defaultcategoryid $defaultcategoryid dos not exists, see setting in  my_external_backup_restore_courses plugin and please correct this."));
             $errors->notify_errors();
             return false;
         }
@@ -916,17 +916,19 @@ class block_my_external_backup_restore_courses_task_error extends stdClass{
     }
 
     public function __construct($task, $message, $courseid=0) {
-        $this->externalcourseid = $task->externalcourseid;
-        $this->externalmoodleurl = $task->externalmoodleurl;
-        $this->externalmoodlesitename = property_exists($task, 'externalmoodlesitename') ? $task->externalmoodlesitename
+        if($task) {
+            $this->externalcourseid = $task->externalcourseid;
+            $this->externalmoodleurl = $task->externalmoodleurl;
+            $this->externalcourseid = $task->externalcourseid;
+            $this->internalcategoryname = $task->internalcategoryname;
+            $this->defaultcategoryname = $task->defaultcategoryname;
+            $this->externalcoursename = $task->externalcoursename;
+        }
+        $this->externalmoodlesitename = !is_null($task) && property_exists($task, 'externalmoodlesitename') ? $task->externalmoodlesitename
             : get_string('NA', 'block_my_external_backup_restore_courses');
-        $this->externalcourseid = $task->externalcourseid;
         $this->courseid = $courseid;
-        $this->usernameorid = $task->requesterid;
-        $this->externalcoursename = $task->externalcoursename;
+        $this->usernameorid = !is_null($task)? $task->requesterid : get_admin()->id;
         $this->message = $message;
-        $this->internalcategoryname = $task->internalcategoryname;
-        $this->defaultcategoryname = $task->defaultcategoryname;
         mtrace($message);
     }
     public function get_user() {
