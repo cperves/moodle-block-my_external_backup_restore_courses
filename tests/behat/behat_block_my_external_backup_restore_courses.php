@@ -54,7 +54,7 @@ class behat_block_my_external_backup_restore_courses extends behat_base {
             MUST_EXIST);
         $wsuser = $DB->get_record('user', array('username' => self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_DEFAULT_USER));
         $systemcontext = context_system::instance();
-        $token = external_generate_token(EXTERNAL_TOKEN_PERMANENT, $webservice->id, $wsuser->id, $systemcontext->id);
+        $token = \core_external\util::generate_token(EXTERNAL_TOKEN_PERMANENT, $webservice, $wsuser->id, $systemcontext);
         $externalmoodles = get_config('block_my_external_backup_restore_courses', 'external_moodles');
         $externalmoodles = (empty($externalmoodles) ? '' : $externalmoodles.';').$CFG->wwwroot."/fake,".$token;
         set_config('external_moodles', $externalmoodles, 'block_my_external_backup_restore_courses');
@@ -112,7 +112,7 @@ class behat_block_my_external_backup_restore_courses extends behat_base {
         );
         $event = \core\event\webservice_service_user_added::create($params);
         $event->trigger();
-        $token = external_generate_token(EXTERNAL_TOKEN_PERMANENT, $service->id, $wsuser->id, $systemcontext->id);
+        $token = \core_external\util::generate_token(EXTERNAL_TOKEN_PERMANENT, $service, $wsuser->id, $systemcontext);
         return $token;
     }
 

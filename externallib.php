@@ -31,6 +31,7 @@ use \core_external\external_function_parameters;
 use \core_external\external_value;
 use \core_external\external_single_structure;
 use \core_external\external_multiple_structure;
+
 class block_my_external_backup_restore_courses_external extends external_api {
     public static function get_courses_zip($username, $courseid, $withuserdatas=false) {
         global $DB, $CFG;
