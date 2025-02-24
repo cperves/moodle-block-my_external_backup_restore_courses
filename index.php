@@ -42,13 +42,10 @@ $PAGE->set_heading(get_string('externalmoodlecourselist', 'block_my_external_bac
 $PAGE->requires->js(new moodle_url('module.js'));
 echo $OUTPUT->header();
 echo $OUTPUT->box_start('my_external_backup_restore_course_refresh');
-echo html_writer::link('#', html_writer::empty_tag('img',
-        array('src' => $OUTPUT->image_url('a/refresh'),
-            'alt' => get_string('refresh'),
-            'class' => 'iconsmall')
-        ),
-        array('onclick' => 'window.location=\''.$PAGE->url->out(false).'\';return false;')
-    );
+echo $OUTPUT->action_icon($PAGE->url, new pix_icon('a/refresh', get_string('refresh'), 'core',
+    array('class' => 'iconsmall', 'onclick' => 'window.location=\''.$PAGE->url->out(false).'\';return false;')
+    )
+);
 echo $OUTPUT->box_end();
 echo $OUTPUT->box_start('my_external_backup_restore_course_help');
 echo html_writer::tag('span', get_string('externalmoodlehelpsection', 'block_my_external_backup_restore_courses'));
