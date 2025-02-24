@@ -1,4 +1,6 @@
 # CHANGES
+* 2025-02-24:
+ * 4.5 version
 * 2024-06-13 : 
  * enable block in courses (spécific usage of a university)
  * correct notitifcation error while forgotting the defaultcategoryid in settings
