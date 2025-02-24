@@ -38,7 +38,7 @@ $string['my_external_backup_restore_courses:can_restore_user_datas'] = 'User has
 $string['noexternalmoodleconnected'] = 'No external moodle connected';
 $string['externalmoodlecourselist'] = 'External moodles course list';
 $string['externalmoodlehelpsection'] =
-'In the folling table :<ul><li> check to select the remote courses that you want to restore on the current plate-forme</li><li>Next click on "Send" button</ul>
+'In the following table :<ul><li> check to select the remote courses that you want to restore on the current plate-forme</li><li>Next click on "Send" button</ul>
 Courses are then scheduled to be restored.<br><br>
 You can consult the state of your scheduled for restoration courses (scheduled date, resotoration completed, ...).<br>
 A message notification will be send once your course will be restored.
