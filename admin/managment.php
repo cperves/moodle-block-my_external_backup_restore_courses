@@ -44,13 +44,7 @@ echo html_writer::tag('span', get_string('defaultcategoryx','block_my_external_b
 echo $OUTPUT->box_end();
 
 echo $OUTPUT->box_start('my_external_backup_restore_course_refresh');
-echo html_writer::link('#', html_writer::empty_tag('img',
-    array('src' => $OUTPUT->image_url('a/refresh'),
-        'alt' => get_string('refresh'),
-        'title' => get_string('refresh'),
-        'class' => 'iconsmall')
-),
-    array('onclick' => 'window.location=\''.$PAGE->url->out(false).'\';return false;')
+echo $OUTPUT->action_icon($PAGE->url, new pix_icon('a/refresh', get_string('refresh'), 'core')
 );
 echo $OUTPUT->box_end();
 
