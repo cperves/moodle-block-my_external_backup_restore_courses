@@ -50,7 +50,9 @@ require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
 //require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 require_once($CFG->dirroot.'/webservice/lib.php');
 
-
+/**
+ * @runTestsInSeparateProcesses
+ */
 class externallib_test extends externallib_advanced_testcase {
     private $datagenerator;
     private $course1;
