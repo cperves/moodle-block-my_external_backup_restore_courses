@@ -1,4 +1,8 @@
 # CHANGES
+* 2025-03-20:
+  * simplify settings
+  * enrol caategory support + unit tests
+  * autoenrol_requester is now a setting option
 * 2025-02-24:
  * 4.5 version
 * 2024-06-13 : 
