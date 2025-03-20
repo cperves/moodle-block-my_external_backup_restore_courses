@@ -50,6 +50,19 @@ if ($hassiteconfig) {
             'moodle/site:config'));
 
     // Plugin settings.
+    $options = [
+        0 => get_string('courseclient', 'block_my_external_backup_restore_courses'),
+        1 => get_string('courseserver', 'block_my_external_backup_restore_courses'),
+        2 => get_string("bothclientserver", 'block_my_external_backup_restore_courses')];
+    $settings->add(
+        new admin_setting_configselect(
+            "block_my_external_backup_restore_courses/moodle_role",
+            get_string("moodle_role","block_my_external_backup_restore_courses"),
+            get_string("moodle_role_desc", "block_my_external_backup_restore_courses"),
+            0,
+            $options
+        )
+    );
     $roles = $DB->get_records('role', array('archetype' => 'editingteacher'));
     $arrayofroles = array();
     $defaultrole = null;
@@ -65,25 +78,52 @@ if ($hassiteconfig) {
         get_string("roles_included_in_external_courses_search_Desc", "block_my_external_backup_restore_courses"),
         'editingteacher'
     ));
+    $settings->hide_if('block_my_external_backup_restore_courses/search_roles',
+        'block_my_external_backup_restore_courses/moodle_role',
+        'eq',
+        1
+    );
     $settings->add(new admin_setting_configtextarea("block_my_external_backup_restore_courses/external_moodles",
         get_string('external_moodle', 'block_my_external_backup_restore_courses'),
         get_string('external_moodleDesc', 'block_my_external_backup_restore_courses'), ''
     ));
-    $settings->add(new admin_setting_configtext('block_my_external_backup_restore_courses/defaultcategory',
+    $settings->hide_if('block_my_external_backup_restore_courses/external_moodles',
+        'block_my_external_backup_restore_courses/moodle_role',
+        'eq',
+        1
+    );
+    $setting = new admin_setting_configtext('block_my_external_backup_restore_courses/defaultcategory',
         get_string('defaultcategory', 'block_my_external_backup_restore_courses'),
         get_string('defaultcategory_desc', 'block_my_external_backup_restore_courses'),
         ''
-    ));
+    );
+    $settings->add($setting);
+    $setting->set_required_flag_options(admin_setting_flag::ENABLED, false);
+    $settings->hide_if('block_my_external_backup_restore_courses/defaultcategory',
+        'block_my_external_backup_restore_courses/moodle_role',
+        'eq',
+        1
+    );
     $settings->add(new admin_setting_configcheckbox('block_my_external_backup_restore_courses/restorecourseinoriginalcategory',
         get_string('restorecourseinoriginalcategory', 'block_my_external_backup_restore_courses'),
         get_string('restorecourseinoriginalcategory_desc', 'block_my_external_backup_restore_courses'),
         0
     ));
+    $settings->hide_if('block_my_external_backup_restore_courses/restorecourseinoriginalcategory',
+        'block_my_external_backup_restore_courses/moodle_role',
+        'eq',
+        1
+    );
     $settings->add(new admin_setting_configcheckbox('block_my_external_backup_restore_courses/defaultcategorychecked',
         get_string('defaultcategorychecked', 'block_my_external_backup_restore_courses'),
         get_string('defaultcategorychecked_desc', 'block_my_external_backup_restore_courses'),
         1
     ));
+    $settings->hide_if('block_my_external_backup_restore_courses/defaultcategorychecked',
+        'block_my_external_backup_restore_courses/moodle_role',
+        'eq',
+        1
+    );
     $settings->add(new admin_setting_configtext('block_my_external_backup_restore_courses/categorytable',
         get_string('categorytable', 'block_my_external_backup_restore_courses'),
         get_string('categorytable_desc', 'block_my_external_backup_restore_courses'),
@@ -104,25 +144,65 @@ if ($hassiteconfig) {
         get_string('onlyoneremoteinstance_desc', 'block_my_external_backup_restore_courses'),
         1
     ));
+    $settings->hide_if('block_my_external_backup_restore_courses/onlyoneremoteinstance',
+        'block_my_external_backup_restore_courses/moodle_role',
+        'eq',
+        1
+    );
     $settings->add(new admin_setting_configcheckbox('block_my_external_backup_restore_courses/enrollbutton',
         get_string('enrollbutton', 'block_my_external_backup_restore_courses'),
         get_string('enrollbutton_desc', 'block_my_external_backup_restore_courses'),
         1
     ));
+    $settings->hide_if('block_my_external_backup_restore_courses/enrollbutton',
+        'block_my_external_backup_restore_courses/moodle_role',
+        'eq',
+        1
+    );
     $settings->add(new admin_setting_configselect('block_my_external_backup_restore_courses/enrollrole',
         get_string('enrollrole', 'block_my_external_backup_restore_courses'),
         get_string('enrollrole_desc', 'block_my_external_backup_restore_courses'),
         $defaultrole, $arrayofroles
     ));
+    $settings->hide_if('block_my_external_backup_restore_courses/enrollrole',
+        'block_my_external_backup_restore_courses/moodle_role',
+        'eq',
+        1
+    );
+    $settings->add(new admin_setting_configcheckbox('block_my_external_backup_restore_courses/autoenrol_requester',
+        get_string('autoenrol_requester', 'block_my_external_backup_restore_courses'),
+        get_string('autoenrol_requester_desc', 'block_my_external_backup_restore_courses'),
+        1
+    ));
+    $settings->hide_if('block_my_external_backup_restore_courses/autoenrol_requester',
+        'block_my_external_backup_restore_courses/moodle_role',
+        'eq',
+        1
+    );
     $settings->add(new admin_setting_configcheckbox('block_my_external_backup_restore_courses/includeexternalurlinmail',
         get_string('includeexternalurlinmail', 'block_my_external_backup_restore_courses'),
         get_string('includeexternalurlinmail_desc', 'block_my_external_backup_restore_courses'), 0));
+    $settings->hide_if('block_my_external_backup_restore_courses/includeexternalurlinmail',
+        'block_my_external_backup_restore_courses/moodle_role',
+        'eq',
+        1
+    );
     $settings->add(new admin_setting_configcheckbox('block_my_external_backup_restore_courses/warningstoowner',
         get_string('warningstoowner', 'block_my_external_backup_restore_courses'),
         get_string('warningstoowner_desc', 'block_my_external_backup_restore_courses'), 1));
+    $settings->hide_if('block_my_external_backup_restore_courses/warningstoowner',
+        'block_my_external_backup_restore_courses/moodle_role',
+        'eq',
+        1
+    );
     $settings->add(new admin_setting_configcheckbox('block_my_external_backup_restore_courses/checkrequestercapascoursecreate',
         get_string('checkrequestercapascoursecreate', 'block_my_external_backup_restore_courses'),
         get_string('checkrequestercapascoursecreate_desc', 'block_my_external_backup_restore_courses'), 1));
+    $settings->hide_if('block_my_external_backup_restore_courses/checkrequestercapascoursecreate',
+        'block_my_external_backup_restore_courses/moodle_role',
+        'eq',
+        1
+    );
 }
 
 // Prevent Moodle from adding settings block in standard location.

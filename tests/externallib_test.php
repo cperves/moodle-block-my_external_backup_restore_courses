@@ -32,10 +32,12 @@ use block_my_external_backup_restore_courses_task;
 use block_my_external_backup_restore_courses_task_helper;
 use block_my_external_backup_restore_courses_tools;
 use context_course;
+use context_coursecat;
 use context_system;
 use core_competency\course_competency;
 use core_competency\user_evidence_competency;
 use \core_external\external_api;
+use enrol_category\task\enrol_category_sync;
 use externallib_advanced_testcase;
 use stdClass;
 use core_competency\api;
@@ -48,27 +50,31 @@ require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
 //require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 require_once($CFG->dirroot.'/webservice/lib.php');
 
-/**
- * @runTestsInSeparateProcesses
- */
+
 class externallib_test extends externallib_advanced_testcase {
     private $datagenerator;
     private $course1;
     private $defaultcategory;
     private $coursecategory;
     private $editingteacheruser;
+    private $categorymanager;
     private $studentuser1;
     private $studentuser2;
     private $wsuser;
     private $wsrole;
     private $forum;
     protected const EDITING_TEACHER_USERNAME = 'editingteacher1';
+    protected const CATEGORY_MANAGER_USERNAME = 'categegorymanager';
+    protected const CATEGORY_MANAGER_ROLE = 'categegorymanager';
 
 
-    public function test_get_courses(){
+    /**
+     * @dataProvider username_role_provider
+     */
+    public function test_get_courses($username, $role){
         $this->setUser($this->wsuser);
-        $courses = block_my_external_backup_restore_courses_external::get_courses($this->editingteacheruser->username,
-            'editingteacher');
+        $courses = block_my_external_backup_restore_courses_external::get_courses($username,
+            $role, true);
         $courses = external_api::clean_returnvalue(
             block_my_external_backup_restore_courses_external::get_courses_returns(), $courses);
         $this->assertCount(1, $courses);
@@ -83,8 +89,12 @@ class externallib_test extends externallib_advanced_testcase {
      */
     public function test_get_courses_zip($username){
         $this->setUser($this->wsuser);
-        $coursezip = block_my_external_backup_restore_courses_external::get_courses_zip($username,
-            $this->course1->id);
+        $coursezip = block_my_external_backup_restore_courses_external::get_courses_zip(
+            $username,
+            $this->course1->id,
+            'editingteacher,'.self::CATEGORY_MANAGER_ROLE,
+            true
+        );
 
         $file = external_api::clean_returnvalue(
             block_my_external_backup_restore_courses_external::get_courses_zip_returns(), $coursezip);
@@ -104,8 +114,12 @@ class externallib_test extends externallib_advanced_testcase {
 
     public function test_get_courses_zip_withuserdatas($username){
         $this->setUser($this->wsuser);
-        $coursezip = block_my_external_backup_restore_courses_external::get_courses_zip($username,
-            $this->course1->id, true);
+        $coursezip = block_my_external_backup_restore_courses_external::get_courses_zip(
+            $username,
+            $this->course1->id,
+            'editingteacher,'.self::CATEGORY_MANAGER_ROLE,
+            true
+        );
 
         $file = external_api::clean_returnvalue(
             block_my_external_backup_restore_courses_external::get_courses_zip_returns(), $coursezip);
@@ -169,6 +183,7 @@ class externallib_test extends externallib_advanced_testcase {
             $this->assertNotFalse(array_search($this->studentuser1->id, array_keys($enrolleeswithmethod)));
             $this->assertFalse(array_search($this->studentuser2->id, array_keys($enrolleeswithmethod)));
         } else {
+            // auto_enrol request is set to 1 by default
             $this->assertCount(1, $enrolleeswithmethod);
             $this->assertNotFalse(array_search($this->editingteacheruser->id, array_keys($enrolleeswithmethod)));
         }
@@ -190,6 +205,18 @@ class externallib_test extends externallib_advanced_testcase {
         }
     }
 
+    public function test_restore_course_without_requester_autoenrol(){
+        global $DB;
+        set_config("autoenrol_requester", 0, "block_my_external_backup_restore_courses");
+        $restoredcourseid = $this->restore_course(0, false, backup::ENROL_NEVER);
+        // Check that user datas are here.
+        // Pass as admin to check course datas.
+        $this->setAdminUser();
+        $coursecontext = context_course::instance($restoredcourseid);
+        $enrollees = get_enrolled_users($coursecontext);
+        $this->assertCount(0, $enrollees); // Requester is not auto enrolled
+    }
+
     /**
      * @dataProvider enrolmode_withuserdatas_competencies_provider
      */
@@ -209,7 +236,8 @@ class externallib_test extends externallib_advanced_testcase {
         $this->setAdminUser();
         $coursecontext = context_course::instance($restoredcourseid);
         $enrollees = get_enrolled_users($coursecontext);
-        $this->assertCount(3, $enrollees);
+
+        $this->assertCount(($enrolmentmode == backup::ENROL_NEVER ? 4 : 3), $enrollees);
         $this->assertNotFalse(array_search($this->editingteacheruser, $enrollees));
         $this->assertNotFalse(array_search($this->studentuser1, $enrollees));
         $enrolinstances = enrol_get_instances($restoredcourseid, true);
@@ -223,7 +251,7 @@ class externallib_test extends externallib_advanced_testcase {
                 'select ue.userid,e.enrol from {user_enrolments} ue inner join {enrol} e on e.id=ue.enrolid where courseid=:courseid',
                 array('courseid' => $restoredcourseid)
             );
-        $this->assertCount(3, $enrolleeswithmethod);
+        $this->assertCount(($enrolmentmode == backup::ENROL_NEVER ? 4 : 3), $enrollees);
         $this->assertNotFalse(array_search($this->editingteacheruser->id, array_keys($enrolleeswithmethod)));
         $this->assertNotFalse(array_search($this->studentuser1->id, array_keys($enrolleeswithmethod)));
         $this->assertEquals('manual',$enrolleeswithmethod[$this->editingteacheruser->id]->enrol);
@@ -286,7 +314,7 @@ class externallib_test extends externallib_advanced_testcase {
         global $DB, $CFG;
         $this->resetAfterTest(true);
         $this->preventResetByRollback(); // Logging waits till the transaction gets committed.
-        $CFG->enrol_plugins_enabled = 'cohort,manual';
+        $CFG->enrol_plugins_enabled = 'cohort,manual,category';
         $cohortplugin = enrol_get_plugin('cohort');
         $this->datagenerator = $this->getDataGenerator();
         $coursecreatorrole = $DB->get_record('role', array('shortname' => 'coursecreator'));
@@ -294,6 +322,8 @@ class externallib_test extends externallib_advanced_testcase {
         $this->coursecategory = $this->datagenerator->create_category(array('idnumber' => 'coursecat'));
         set_config('restorecourseinoriginalcategory', 1, 'block_my_external_backup_restore_courses');
         set_config('defaultcategory', $this->defaultcategory->id, 'block_my_external_backup_restore_courses');
+        set_config('search_roles', 'editingteacher,'.self::CATEGORY_MANAGER_ROLE, 'block_my_external_backup_restore_courses');
+
         // Webservice settings.
         $systemcontext = context_system::instance();
         $this->wsuser = $this->datagenerator->create_user();
@@ -312,13 +342,31 @@ class externallib_test extends externallib_advanced_testcase {
         assign_capability('moodle/restore:restorecourse', CAP_ALLOW, $coursecreatorrole->id, $systemcontext, true);
         accesslib_clear_all_caches_for_unit_testing();
         // Courses datas.
+        // Create categorymanager role based on manager role.
+        $rolerecord = new stdClass();
+        $rolerecord->shortname = self::CATEGORY_MANAGER_ROLE;
+        $rolerecord->name = self::CATEGORY_MANAGER_ROLE;
+        $rolerecord->archetype = 'manager';
+        $categorymanagerroleid = $this->datagenerator->create_role($rolerecord);
         $studentrole = $DB->get_record('role', array('shortname' => 'student'));
+        // Create users.
         $editingteacherrecord = new  stdClass();
         $editingteacherrecord->username='editingteacher1';
         $this->editingteacheruser = $this->datagenerator->create_user($editingteacherrecord);
         $this->studentuser1 = $this->datagenerator->create_user();
         $this->studentuser2 = $this->datagenerator->create_user();
+        $categorymanagerrecord = new  stdClass();
+        $categorymanagerrecord->username=self::CATEGORY_MANAGER_USERNAME;
+        $this->categorymanager = $this->datagenerator->create_user($categorymanagerrecord);
+        // Add capbility to take category enrol in charge
+        assign_capability(
+            'enrol/category:synchronised', CAP_ALLOW,
+            $categorymanagerroleid, $systemcontext->id, true
+        );
+        accesslib_clear_all_caches_for_unit_testing();
+        // Create course.
         $this->course1 = $this->datagenerator->create_course(array('category' => $this->coursecategory->id));
+        // Create cohort and assign.
         $cohortrecord = new \stdClass();
         $cohortrecord->contextid = \context_system::instance()->id;
         $cohortrecord->name = 'The loneliest';
@@ -331,9 +379,19 @@ class externallib_test extends externallib_advanced_testcase {
         $this->datagenerator->create_module('forum', array(
             'course' => $this->course1->id));
         $this->forum = forum_get_course_forum($this->course1->id, 'news');
+        // course enrolment and course assignments
         $this->datagenerator->role_assign($coursecreatorrole->id, $this->editingteacheruser->id);
         $this->datagenerator->enrol_user($this->editingteacheruser->id, $this->course1->id, 'editingteacher', 'manual');
         $this->datagenerator->enrol_user($this->studentuser2->id, $this->course1->id, 'student', 'manual');
+        // Category enrolment that will triggering course enrolment
+        $this->datagenerator->role_assign(
+            $categorymanagerroleid,
+            $this->categorymanager->id,
+            context_coursecat::instance($this->coursecategory->id));
+
+        // Launch task
+        $task = new enrol_category_sync();
+        $task->execute();
         // Disable all loggers.
         $CFG->backup_error_log_logger_level = backup::LOG_NONE;
         $CFG->backup_output_indented_logger_level = backup::LOG_NONE;
@@ -370,8 +428,13 @@ class externallib_test extends externallib_advanced_testcase {
         $task = array_pop($tasks);
         $taskobject = new block_my_external_backup_restore_courses_task($task);
         $this->setUser($this->wsuser);
-        $coursezip = block_my_external_backup_restore_courses_external::get_courses_zip($this->editingteacheruser->username,
-            $this->course1->id, $withuserdatas);
+        $coursezip = block_my_external_backup_restore_courses_external::get_courses_zip(
+            $this->editingteacheruser->username,
+            $this->course1->id,
+            'editingteacher,'.self::CATEGORY_MANAGER_ROLE,
+            1,
+            $withuserdatas
+        );
         $file = external_api::clean_returnvalue(
             block_my_external_backup_restore_courses_external::get_courses_zip_returns(), $coursezip);
         $fs = get_file_storage();
@@ -431,7 +494,14 @@ class externallib_test extends externallib_advanced_testcase {
     public function username_provider(): array {
         return [
             [self::EDITING_TEACHER_USERNAME],
-            [''],
+            [self::CATEGORY_MANAGER_USERNAME],
+        ];
+    }
+
+    public function username_role_provider(): array {
+        return [
+            [self::EDITING_TEACHER_USERNAME, 'editingteacher'],
+            [self::CATEGORY_MANAGER_USERNAME, self::CATEGORY_MANAGER_ROLE],
         ];
     }
 

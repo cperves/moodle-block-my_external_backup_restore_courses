@@ -10,7 +10,7 @@ Additional plugins should be the same on all Moodle platforms involved.
   * enable a user to program course restoration, where courses comes from external moodles
   * depending of his role capabilities he can restore courses with user datas
   * possibility to find the original category based on unique category identifier threw plugin settings on database relation (user must hace moodle/course:create in the category context)
-  * restore cours in a default category (user must hace moodle/course:create in that context)
+  * restore cours in a default category (user must have moodle/course:create in that context)
   * a scheduled task will launch remote backups and restorations of these courses
   * Log and messaging include to notify of success or failure
   * possibilily to restrict to only one restoration by course
@@ -49,37 +49,56 @@ install by cli or manually
 
 ### Block setting
 #### Essential settings
-##### On moodles that serve courses (moodle servers) and client moodles
-Under Plugins -> Blocks -> Restore courses from remote Moodles
+##### On moodles that serve courses (moodle servers)
+##### web settings
 For each moodles you need to fill the following setting parameters
-  * in my_external_backup_course | search_roles enter roles to include in course search simple quote delimited text shortname separated by commas
-  * in my_external_backup_course | restorecourseinoriginalcategory activate the mode that enable to try to search the original category of a remote course 
-  * in my_external_backup_course | categorytable the database table name where to find unique identifier information in order to search/find category, common for both client and server moodles
-  * in my_external_backup_course | categorytable_foreignkey the database foreign key for categorytable
-  * in my_external_backup_course | categorytable_categoryfield the database field in categorytable unique for a category and common for both client and server moodles
-#### Cli install version
-* for moodle version 4.0 and above
-* the following commands are the ones for traditional moodles
+* Under Plugins -> Blocks -> Restore courses from remote Moodles
+* select the configuration of the Moodle moodle_role and choose "Course Server"
+  * selecting this will filter the config settings used by the current Moodle
+* leave the following parameters at default or change them according to your usage
+  * categorytable the database table name where to find unique identifier information in order to search/find category, common for both client and server moodles 
+  * categorytable_foreignkey the database foreign key for categorytable
+  * categorytable_categoryfield the database field in categorytable unique for a category and common for both client and server moodles
+##### Cli install version
+* the following commands are the ones for traditional moodles, change them if necessary for your own case
 ```bash
-php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=restorecourseinoriginalcategory --set=1
-php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=search_roles --set=editingteacher
 php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=categorytable --set=course_categories
 php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=categorytable_foreignkey --set=id
 php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=categorytable_categoryfield --set=idnumber
 ```
 ##### On course clients moodles
-  * in my_external_backup_course | defaultcategory the categoryid where the course will be restored by default, users that restore must have capability to moodle/course:create
-  * in my_external_backup_course | externalmoodles formatted list of course servers moodles formatted as moodle_url1,token_compte_webservice_moodle_externe1;moodle_url2,token_compte_webservice_moodle_externe2;...
+* Under Plugins -> Blocks -> Restore courses from remote Moodles
+* select the configuration of the Moodle moodle_role and choose "Course Client"
+  * selecting this will filter the config settings used by the current Moodle
+QLeave the following parameters or change them according to your usage
+  * search_roles enter roles to include in course search simple quote delimited text shortname separated by commas
+  * external_moodles a list of Moodle course server root urls,token separated by ; (moodle_url1,token1;moodle_url2,token2) - where webservices token are the one generated in previous step
+  * defaultcategory, **required**, the categoryid where the course will be restored by default
+  * restorecourseinoriginalcategory activate the mode that enable to try to search the original category of a remote course
+  * categorytable the database table name where to find unique identifier information in order to search/find category, common for both client and server moodles
+  * categorytable_foreignkey the database foreign key for categorytable
+  * categorytable_categoryfield the database field in categorytable unique for a category and common for both client and server moodles
+  * defaultcategorychecked is original category choice checked by default on the user course restore demands form
+  * onlyoneremoteinstance Only on restoration is autorized by external course. All users included
+  * enrollbutton concerned users with search_roles role in remote course will have an enroll button to enrol as enrollrole
+  * enrollrole role that will be assigned to requester of restoration and to user after clicking enroll button, the possible value are roles with editingteacher archetype
+  * includeexternalurlinmail Include external platform url in notification mail
+  * warningstoowner Show warnings to restored course owner
+  * checkrequestercapascoursecreate if checked users that restore must have capability to moodle/course:create
 ###### Cli install version
-* for moodle version 4.0 and above
+You can use cli command to set all the necessary parameters
 ```bash
+php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=restorecourseinoriginalcategory --set=1
+php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=search_roles --set=editingteacher
 php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=defaultcategory --set=<idnumber>
 php /var/www/moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore_courses' --name=externalmoodles --set=<moodles separated by ;>
+...
 ```
 
-###### Cron setting 
+###### Cron setting  **Only on client Moodle**
 On Site administration -> Server -> Scheduled tasks
 * Edit "Restore course from remote Moodles" task to determine when restore process is launched
+  * (\block_my_external_backup_restore_courses\task\backup_restore_task)
 
 #### capability
 * in order to use this block in dashboard a capability block/my_external_backup_restore_courses:view is provided and by default allowed for coursecreator and manager profile
@@ -111,11 +130,11 @@ In case of troubles with message "error/site name can't be retrieved for ..."
 * check that the token is correct and that external_moodles is correctly filled in plugin settings
 * check that your https configuration is correct in web server including valid ssl certificate
 * you can test the webservice with url :
-  * `https://mywebsite/webservice/rest/server.php?wstoken=xxxxxxxxxxxxxxx&moodlewsrestformat=json&wsfunction=block_my_external_backup_restore_courses_get_courses&username=USERNAME&concernedroles=AROLE
+  * `https://mywebsite/webservice/rest/server.php?wstoken=xxxxxxxxxxxxxxx&moodlewsrestformat=json&wsfunction=block_my_external_backup_restore_courses_get_courses&username=USERNAME&searchroles=AROLE
     * will return the list of remote courses
     * for user with username USERNAME
     * who has AROLE role in courses
-* `https://mywebsite/webservice/rest/server.php?wstoken=XXXXXXXXXXXXXXX&moodlewsrestformat=json&wsfunction=block_my_external_backup_restore_courses_get_courses_zip&username=USERNAME&courseid=COURSEID`
+* `https://mywebsite/webservice/rest/server.php?wstoken=XXXXXXXXXXXXXXX&moodlewsrestformat=json&wsfunction=block_my_external_backup_restore_courses_get_courses_zip&username=USERNAME&courseid=COURSEID&searchroles=AROLE`
     * will return {"filename":"", "filerecord":XXXXXXX}
     * for user USERNAME
     * in course COURSEID

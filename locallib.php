@@ -96,12 +96,11 @@ class block_my_external_backup_restore_courses_tools{
         return $coursename;
     }
 
-    public static function get_all_users_courses($username, $onlyactive = false,
+    public static function get_all_users_courses($username, $searchroles, $restorecourseinoriginalcategory=false, $onlyactive = false,
         $fields = null,
         $sort = 'visible DESC,sortorder ASC') {
         global $DB;
         $config = get_config('block_my_external_backup_restore_courses');
-        $restorecourseinoriginalcategory = $config->restorecourseinoriginalcategory;
         $categorytable = $config->categorytable;
         $categorytableforeignkey = $config->categorytable_foreignkey;
         $categorytablecategoryfield = $config->categorytable_categoryfield;
@@ -157,6 +156,7 @@ class block_my_external_backup_restore_courses_tools{
 
         $params = array();
 
+        // Take in charge
         if ($onlyactive) {
             $subwhere =
                 ' AND  ue.status = :active AND e.status = :enabled'
@@ -174,7 +174,7 @@ class block_my_external_backup_restore_courses_tools{
         $join = "LEFT JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = ".CONTEXT_COURSE.")";
         list($ccselect, $ccjoin) = array($select, $join);
 
-        $newformattedroles = self::get_formatted_concerned_roles_shortname();
+        $newformattedroles = self::get_formatted_concerned_roles_shortname($searchroles);
         if (count($newformattedroles) == 0) {
             return false;
         }
@@ -183,14 +183,13 @@ class block_my_external_backup_restore_courses_tools{
         $sql = "SELECT $coursefields $ccselect $categoryselect
                       FROM {course} c
                       INNER JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = ".CONTEXT_COURSE.")
-                      INNER JOIN (
-                        SELECT ra.contextid AS contextid, usr.firstname AS firstname, usr.lastname AS lastname
-                        FROM {role_assignments} ra
-                        INNER JOIN {role} r ON (r.id = ra.roleid and r.shortname IN (".implode(',', $newformattedroles)."))
-                        INNER JOIN {user} usr ON (ra.userid = usr.id AND usr.id = $userid AND usr.deleted=0)
-                        ) AS u ON (u.contextid = ctx.id)
-                    $categoryjoin
-                    WHERE c.id <> ".SITEID.$categorywhere
+                      INNER JOIN {role_assignments} ra on ra.contextid=ctx.id
+                      INNER JOIN {role} r ON r.id = ra.roleid and r.shortname IN (".implode(',', $newformattedroles).")
+                      INNER JOIN {user} usr ON ra.userid = usr.id AND usr.id = $userid AND usr.deleted=0
+                      INNER JOIN {enrol} e ON e.courseid = c.id 
+                      INNER JOIN {user_enrolments} ue ON ue.enrolid = e.id AND ue.userid = usr.id"
+                    .$categoryjoin
+                    ." WHERE usr.deleted=0 and c.id <> ".SITEID.$categorywhere.$subwhere
             ." UNION
                 SELECT $coursefields $ccselect $categoryselect
                     FROM {course} c
@@ -202,7 +201,7 @@ class block_my_external_backup_restore_courses_tools{
                                 JOIN {role_assignments} ra ON (ra.contextid = cctx.id)
                                 JOIN {role} ro ON (ra.roleid = ro.id and ro.shortname in (".implode(',', $newformattedroles)."))
                                 GROUP BY cctx.path, ra.userid, ra.roleid
-                      ) cat ON (ctx.path LIKE cat.path || '/%')
+                      ) cat ON (ctx.path LIKE CONCAT(cat.path,'%'))
                     INNER JOIN {user_enrolments} ue ON (ue.enrolid = e.id AND ue.userid = cat.userid)
                     INNER JOIN {user} u ON u.id = cat.userid AND u.id = ue.userid AND u.deleted=0
                     INNER JOIN {role} r ON r.id = cat.roleid AND r.shortname IN (".implode(',', $newformattedroles).")
@@ -258,13 +257,11 @@ class block_my_external_backup_restore_courses_tools{
         }
         return $resp;
     }
-    public static function get_formatted_concerned_roles_shortname() {
-        $config = get_config("block_my_external_backup_restore_courses");
-        $roles = $config->search_roles;
-        if (empty($roles)) {
+    public static function get_formatted_concerned_roles_shortname($searchroles) {
+        if (empty($searchroles)) {
             return array();
         }
-        $roles = explode(',', $roles);
+        $roles = explode(',', $searchroles);
         $newformattedroles = array();
         foreach ($roles as $key => $role) {
             $newformattedroles[] = '\''.$role.'\'';
@@ -272,7 +269,7 @@ class block_my_external_backup_restore_courses_tools{
         return $newformattedroles;
     }
 
-    public static function get_concerned_roles_shortname() {
+    public static function get_search_roles_shortname() {
         $config = get_config("block_my_external_backup_restore_courses");
         $roles = $config->search_roles;
         $roles = str_replace("'", '', $roles ?? '');
@@ -580,7 +577,14 @@ class block_my_external_backup_restore_courses_task{
     public function download_external_backup_courses($username, $withuserdatas) {
         global $CFG;
         $functionname = 'block_my_external_backup_restore_courses_get_courses_zip';
-        $params = array('username' => $username, 'courseid' => $this->task->externalcourseid, 'withuserdatas' => $withuserdatas);
+        $config = get_config("block_my_external_backup_restore_courses");
+        $searchroles = $config->search_roles;
+        $restorecourseinoriginalcategory = $config->restorecourseinoriginalcategory;
+        $params = array(
+            'username' => $username,
+            'searchroles' => $searchroles,
+            'courseid' => $this->task->externalcourseid,
+            'withuserdatas' => $withuserdatas);
         $filereturned = block_my_external_backup_restore_courses_tools::rest_call_external_courses_client(
             $this->task->externalmoodleurl, $functionname, $params, $restformat = 'json', $method = 'post');
         if (empty($filereturned)) {
@@ -719,7 +723,9 @@ class block_my_external_backup_restore_courses_task{
         if (file_exists($path)) {
             unlink($path);
         }
-        $this->enrol_requester_if_any($courseid);
+        if (get_config("block_my_external_backup_restore_courses", "autoenrol_requester")) {
+            $this->enrol_requester_if_any($courseid);
+        }
         return $courseid;
     }
     protected function download_backup_course($url) {

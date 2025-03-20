@@ -66,8 +66,11 @@ $defaultcategoryid = $config->defaultcategory;
 $externalmoodlescfg = $config->external_moodles;
 $onlyoneremoteinstance = boolval($config->onlyoneremoteinstance);
 // Formatted : domainname1,token1;domainname2;token2;...
-$wsparams = array('username' => $USER->username,
-        'concernedroles' => implode(",", block_my_external_backup_restore_courses_tools::get_concerned_roles_shortname()));
+$wsparams = array(
+    'username' => $USER->username,
+    'searchroles' => implode(",", block_my_external_backup_restore_courses_tools::get_search_roles_shortname()),
+    'restorecourseinoriginalcategory' => $restorecourseinoriginalcategory
+);
 // Check if plugin is correcly configured.
 if (empty($defaultcategoryid) ||
     ($restorecourseinoriginalcategory == 1

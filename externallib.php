@@ -33,17 +33,27 @@ use \core_external\external_single_structure;
 use \core_external\external_multiple_structure;
 
 class block_my_external_backup_restore_courses_external extends external_api {
-    public static function get_courses_zip($username, $courseid, $withuserdatas=false) {
+    public static function get_courses_zip(
+        $username, $courseid, $searchroles, $restorecourseinoriginalcategory=false, $withuserdatas=false
+    ) {
         global $DB, $CFG;
         require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/locallib.php');
         require_once('backup_external_courses_helper.class.php');
         $params = self::validate_parameters(self::get_courses_zip_parameters(),
-            array('username' => $username, 'courseid' => $courseid, 'withuserdatas' => $withuserdatas));
+            array('username' => $username, 'courseid' => $courseid,
+                'searchroles' => $searchroles,
+                'restorecourseinoriginalcategory' => $restorecourseinoriginalcategory,
+                'withuserdatas' => $withuserdatas));
 
         require_capability('block/my_external_backup_restore_courses:can_retrieve_courses', context_system::instance());
         if (!empty($username)) {
             // Check some user rights.
-            $usercourses = block_my_external_backup_restore_courses_tools::get_all_users_courses($params['username']);
+            $usercourses =
+                block_my_external_backup_restore_courses_tools::get_all_users_courses(
+                    $params['username'],
+                    $searchroles,
+                    $restorecourseinoriginalcategory
+                );
 
             $usercourseids = array();
             foreach ($usercourses as $usercourse) {
@@ -80,6 +90,8 @@ class block_my_external_backup_restore_courses_external extends external_api {
             array(
                 'username'      => new external_value(PARAM_TEXT, 'username'),
                 'courseid'      => new external_value(PARAM_INT, 'course id'),
+                'searchroles'      => new external_value(PARAM_TEXT, 'search roles'),
+                'restorecourseinoriginalcategory' => new external_value(PARAM_TEXT, 'restore course in original category', VALUE_DEFAULT, false),
                 'withuserdatas' => new external_value(PARAM_BOOL, 'get course archive with user datas included in', VALUE_DEFAULT, false),
             )
         );
@@ -94,17 +106,21 @@ class block_my_external_backup_restore_courses_external extends external_api {
         );
     }
 
-    public static function get_courses($username, $concernedroles) {
+    public static function get_courses($username, $searchroles, $restorecourseinoriginalcategory=false) {
         global $CFG, $DB;
-        $roles = explode(",", $concernedroles);
+        $roles = explode(",", $searchroles);
         require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/locallib.php');
 
         $params = self::validate_parameters(self::get_courses_parameters(),
-            array('username' => $username, 'concernedroles' => $concernedroles));
+            array('username' => $username, 'searchroles' => $searchroles,
+                'restorecourseinoriginalcategory' => $restorecourseinoriginalcategory));
 
         require_capability('block/my_external_backup_restore_courses:can_see_backup_courses', context_system::instance());
-        $usercourses = block_my_external_backup_restore_courses_tools::get_all_users_courses($params['username']);
-
+        $usercourses =
+            block_my_external_backup_restore_courses_tools::get_all_users_courses(
+                $params['username'],
+                $searchroles, $restorecourseinoriginalcategory
+            );
         // Create return value.
         $coursesinfo = array();
         foreach ($usercourses as $usercourse) {
@@ -139,7 +155,8 @@ class block_my_external_backup_restore_courses_external extends external_api {
         return new external_function_parameters(
             array(
                 'username' => new external_value(PARAM_TEXT, ''),
-                'concernedroles' => new external_value(PARAM_TEXT, ''),
+                'searchroles' => new external_value(PARAM_TEXT, ''),
+                'restorecourseinoriginalcategory' => new external_value(PARAM_TEXT, 'restore course in original category', VALUE_DEFAULT, false),
             )
         );
     }
