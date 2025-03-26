@@ -247,7 +247,11 @@ class block_my_external_backup_restore_courses_tools{
         $resp = json_decode($resp ?? '');
         // Check if errors encountered.
         if (!isset($resp)) {
-            throw new Exception($resp);
+            // Retrieve infos in curl.
+            throw new moodle_exception(
+                'curl error , httpcode : '.$curl->get_info()['http_code'].' curl error number '.$curl->get_errno()
+            );
+
         }
         if (isset($resp->errorcode) || isset($resp->exception)) {
             if ($resp->exception == 'block_my_external_backup_restore_courses_invalid_username_exception') {
