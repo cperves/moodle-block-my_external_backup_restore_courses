@@ -17,8 +17,9 @@
 /**
  * Privacy Subsystem implementation for repository_flickr.
  *
- * @package    repository_flickr
- * @copyright  2018 Zig Tan <zig@moodle.com>
+ * @package    block_my_external_backup_restore_courses
+ * @copyright  2023 Université de Strasbourg  {@link http://unistra.fr}
+ * @author Celine Perves <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

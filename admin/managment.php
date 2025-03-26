@@ -8,10 +8,6 @@
  * @author Celine Perves <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-use core_table\local\filter\filter;
-use core_table\local\filter\integer_filter;
-use core_table\local\filter\string_filter;
-
 
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');

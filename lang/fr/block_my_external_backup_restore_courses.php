@@ -157,3 +157,6 @@ $string['autoenrol_requester'] = 'Inscrire automatiquement le demandeur';
 $string['autoenrol_requester_desc'] = 'Inscrire automatiquement le demandeur avec le rôle définit.';
 $string['moodle_role'] = 'Serveur de cours Moodle';
 $string['moodle_role_desc'] = 'Ce Moodle est un serveur de cours.';
+$string['courseclient'] = 'Client de cours';
+$string['courseserver'] = 'Serveur de cours';
+$string['bothclientserver'] = 'Client et serveur de cours';
