@@ -362,6 +362,7 @@ class block_my_external_backup_restore_courses_tools{
             'relateduserid' => $serviceuser->userid
         );
         $event = \core\event\webservice_service_user_added::create($params);
+        $event = \core\event\webservice_service_user_added::create($params);
         $event->trigger();
         $token = \core_external\util::generate_token(EXTERNAL_TOKEN_PERMANENT, $service, $wsuser->id, $systemcontext);
         return $token;

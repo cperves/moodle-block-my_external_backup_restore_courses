@@ -115,6 +115,7 @@ php /moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore
 *  moodle_role
 * Choose "Course server"
   * settings value view will be simplified
+  * if not sometimes theme cache prevent field filter to work correctly, so empty cache should solve the trouble 
 * categorytable, categorytable_foreignkey and categorytable_categoryfield
   * The category tables and field enabling to retrieve course category informations
     * Default values are sufficient, feel free to change them depending of your usages
@@ -161,8 +162,10 @@ In case of troubles with message "error/site name can't be retrieved for ..."
   * Go to Administration -> Security -> HTTP security
   * check settings
   * and above all check curlsecurityblockedhosts content, you maybe have to had remote moodle ip
-
-
+  * check also curlsecurityallowedport to add 443 port
+  * moodle debug message should refer to url_is_blocked or something like that
+* check that both moodle course and client are able to communicate, that url is not blocked
+  * for example by a load balancer
 
 ## Contributions
 Contributions of any form are welcome. Github pull requests are preferred.
