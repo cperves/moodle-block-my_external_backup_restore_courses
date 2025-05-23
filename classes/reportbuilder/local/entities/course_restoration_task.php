@@ -109,6 +109,13 @@ class course_restoration_task extends base {
                 return $selectmenu;
             });
         $columns[] = (
+        new column(
+            'source', new lang_string('source', 'block_my_external_backup_restore_courses'), $this->get_entity_name()
+        ))
+            ->set_type(column::TYPE_TEXT)
+            ->add_fields("{$tablealias}.source")
+            ->set_is_sortable(true);
+        $columns[] = (
             new column(
                 'id', new lang_string('id', 'block_my_external_backup_restore_courses'), $this->get_entity_name()
             ))
@@ -272,6 +279,30 @@ class course_restoration_task extends base {
                         return $status;
                     }
                 );
+            $filters[] =
+                (new filter(
+                    select::class,
+                    'source',
+                    new lang_string('source', 'block_my_external_backup_restore_courses'),
+                    $this->get_entity_name(),
+                    "{$tablealias}.source"
+                ))
+                    ->add_joins($this->get_joins())
+                    ->set_options_callback(
+                        static function():  array {
+                            global $DB;
+                            $sources =
+                                $DB->get_records_sql(
+                                    'select distinct source from {block_external_backuprestore}'
+                                );
+                            $sourceoptions = [];
+                            foreach ($sources as $currentsource) {
+                                $sourceoptions[$currentsource->source] =
+                                    $currentsource->source;
+                            }
+                            return $sourceoptions;
+                        }
+                    );
         $filters[] =
             (new filter(
                 text::class,
