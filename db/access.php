@@ -85,4 +85,20 @@ $capabilities = array(
             'manager' => CAP_ALLOW
         ),
     ),
+    'block/my_external_backup_restore_courses:change_status' => array(
+        'riskbitmask' => RISK_PERSONAL,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+        ),
+    ),
+    'block/my_external_backup_restore_courses:change_internalcategoryid' => array(
+        'riskbitmask' => RISK_PERSONAL,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+        ),
+    ),
+
+
 );

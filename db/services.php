@@ -44,6 +44,24 @@ $functions = array(
         'type' => 'read',
         'capabilities' => 'block/my_external_backup_restore_courses:can_see_backup_courses',
     ),
+    'block_my_external_backup_restore_courses_change_status' => array(
+        'classname' => 'block_my_external_backup_restore_courses_external',
+        'methodname' => 'change_task_status',
+        'classpath' => 'blocks/my_external_backup_restore_courses/externallib.php',
+        'description' => 'Change task status',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'block/my_external_backup_restore_courses:change_status',
+    ),
+    'block_my_external_backup_restore_courses_change_internalcategoryid' => array(
+        'classname' => 'block_my_external_backup_restore_courses_external',
+        'methodname' => 'change_internalcategory_id',
+        'classpath' => 'blocks/my_external_backup_restore_courses/externallib.php',
+        'description' => 'change task internalcategoryid',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'block/my_external_backup_restore_courses:change_internalcategoryid',
+    )
 );
 
 $services = array(

@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 // Can't require_once backup_includes because it trigger a bug with variable block override by a deep require_once
 // require_once($CFG->dirroot.'/backup/util/includes/backup_includes.php');
+require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/locallib.php');
 
 function xmldb_block_my_external_backup_restore_courses_upgrade($oldversion=0) {
     global $DB, $CFG;
@@ -100,5 +101,15 @@ function xmldb_block_my_external_backup_restore_courses_upgrade($oldversion=0) {
         }
         upgrade_block_savepoint(true, 2023061600, 'my_external_backup_restore_courses');
     }
-        return true;
+    $newversion = 2025052200;
+    if ($oldversion < $newversion) {
+        $dbman = $DB->get_manager();
+        $table = new xmldb_table('block_external_backuprestore');
+        $field = new xmldb_field('source', XMLDB_TYPE_CHAR, '256');
+        $field->setDefault(block_my_external_backup_restore_courses_tools::SOURCE_INTERNAL);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+    }
+    return true;
 }

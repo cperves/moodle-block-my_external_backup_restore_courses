@@ -27,12 +27,14 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/repository/lib.php');
+use core\exception\moodle_exception;
 
-class block_my_external_backup_restore_courses_tools{
+class block_my_external_backup_restore_courses_tools {
     const STATUS_SCHEDULED = 0;
     const STATUS_INPROGRESS = 1;
     const STATUS_PERFORMED = 2;
     const STATUS_ERROR = -1;
+    const SOURCE_INTERNAL = 'internal';
     public const BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE = 'block_my_external_backup_restore_courses_ws';
     public const BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_DEFAULT_USER = 'block_my_external_backup_restore_courses_user';
 
@@ -396,6 +398,30 @@ class block_my_external_backup_restore_courses_tools{
         global $DB, $CFG;
         $entries = $DB->get_records('block_external_backuprestore');//troubles with moodle get_count
         return $entries === false ? false:count($entries)>0;
+    }
+
+    public static function update_status($id, $status) {
+        global $DB;
+        $record = $DB->get_record('block_external_backuprestore', array('id' => $id));
+        if (!$record) {
+            throw new moodle_exception("block_my_external_backup_restore_courses task not found for id $id");
+        }
+        $record->status = $status;
+        $DB->update_record('block_external_backuprestore', $record);
+    }
+
+    public static function update_internalcategory($id, $internalcategoryid) {
+        global $DB;
+        $record = $DB->get_record('block_external_backuprestore', array('id' => $id));
+        if (!$record) {
+            throw new moodle_exception("block_my_external_backup_restore_courses task not found for id $id");
+        }
+        //Check that this category exists
+        if ($internalcategoryid != 0 && !$DB->get_record('course_categories', array('id' => $internalcategoryid))) {
+           throw new moodle_exception("category $internalcategoryid not exists ");
+        }
+        $record->internalcategory = $internalcategoryid;
+        $DB->update_record('block_external_backuprestore', $record);
     }
 }
 
@@ -1057,4 +1083,5 @@ class block_my_external_backup_restore_courses_task_error_list {
             }
         }
     }
+
 }

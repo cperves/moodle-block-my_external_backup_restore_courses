@@ -13,6 +13,7 @@
         <FIELD NAME="externalmoodleurl" TYPE="char" LENGTH="256" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="internalcategory" TYPE="int" LENGTH="10" DEFAULT="0" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="status" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="source" TYPE="char" LENGTH="256" NOTNULL="true" DEFAULT="internal" SEQUENCE="false"/>
         <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="withuserdatas" TYPE="int"  LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" />
         <FIELD NAME="enrolmentmode" TYPE="int"  LENGTH="1" NOTNULL="true" DEFAULT="2" SEQUENCE="false" />

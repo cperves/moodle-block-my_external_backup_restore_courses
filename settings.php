@@ -44,6 +44,12 @@ if ($hassiteconfig) {
             'moodle/site:config'));
     $ADMIN->add('blockmyexternalbackuprestorecoursesfolder',
         new admin_externalpage(
+            'my_external_backup_restore_courses_admin',
+            get_string('adminpage', 'block_my_external_backup_restore_courses'),
+            "$CFG->wwwroot/blocks/my_external_backup_restore_courses/admin/index.php",
+            'moodle/site:config'));
+    $ADMIN->add('blockmyexternalbackuprestorecoursesfolder',
+        new admin_externalpage(
             'my_external_backup_restore_courses_restorecourseforuser',
             get_string('adminrestorecourseforuser', 'block_my_external_backup_restore_courses'),
             "$CFG->wwwroot/blocks/my_external_backup_restore_courses/admin/restorecourseforuser.php",

@@ -32,6 +32,7 @@ use \core_external\external_value;
 use \core_external\external_single_structure;
 use \core_external\external_multiple_structure;
 
+require_once($CFG->dirroot . '/blocks/my_external_backup_restore_courses/locallib.php');
 class block_my_external_backup_restore_courses_external extends external_api {
     public static function get_courses_zip(
         $username, $courseid, $searchroles, $restorecourseinoriginalcategory=false, $withuserdatas=false
@@ -181,5 +182,55 @@ class block_my_external_backup_restore_courses_external extends external_api {
                 ), 'course'
             )
         );
+    }
+
+    public static function change_task_status_parameters(): external_function_parameters {
+        return new external_function_parameters([
+            'taskid' => new external_value(PARAM_INT, 'task id', VALUE_REQUIRED),
+            'status' => new external_value(PARAM_INT, 'status value', VALUE_REQUIRED),
+        ]);
+    }
+
+    public static function change_task_status($taskid, $status)
+    {
+        self::validate_parameters(self::change_task_status_parameters(),
+            [
+                'taskid' => $taskid,
+                'status' => $status,
+            ]
+        );
+        block_my_external_backup_restore_courses_tools::update_status($taskid, $status);
+        return ['status'=> $status];
+    }
+
+    public static function change_task_status_returns(): external_single_structure {
+        return new external_single_structure([
+            'status' => new external_value(PARAM_INT, 'status value applied to task'),
+        ]);
+    }
+
+    public static function change_internalcategory_id_parameters(): external_function_parameters {
+        return new external_function_parameters([
+            'taskid' => new external_value(PARAM_INT, 'task id', VALUE_REQUIRED),
+            'internalcategoryid' => new external_value(PARAM_INT, 'status value', VALUE_REQUIRED),
+        ]);
+    }
+
+    public static function change_internalcategory_id($taskid, $internalcategoryid)
+    {
+        self::validate_parameters(self::change_internalcategory_id_parameters(),
+            [
+                'taskid' => $taskid,
+                'internalcategoryid' => $internalcategoryid,
+            ]
+        );
+        block_my_external_backup_restore_courses_tools::update_internalcategory($taskid, $internalcategoryid);
+        return ['internalcategoryid'=> $internalcategoryid];
+    }
+
+    public static function change_internalcategory_id_returns(): external_single_structure {
+        return new external_single_structure([
+            'internalcategoryid' => new external_value(PARAM_INT, 'internalcategoryid value applied to task'),
+        ]);
     }
 }
