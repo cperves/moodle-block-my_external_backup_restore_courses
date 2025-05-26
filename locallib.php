@@ -35,6 +35,7 @@ class block_my_external_backup_restore_courses_tools {
     const STATUS_PERFORMED = 2;
     const STATUS_ERROR = -1;
     const SOURCE_INTERNAL = 'internal';
+    const SOURCE_CLI = 'cli';
     public const BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE = 'block_my_external_backup_restore_courses_ws';
     public const BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_DEFAULT_USER = 'block_my_external_backup_restore_courses_user';
 
@@ -932,6 +933,34 @@ class block_my_external_backup_restore_courses_task{
     }
     public function add_error($message) {
         $this->taskerrors[] = new block_my_external_backup_restore_courses_task_error($this->task, $message);
+    }
+
+    public static function create_task(
+        $userid,
+        $externalcourseid, $externalcoursename, $externalmoodleurl,$courseid,
+        $status = block_my_external_backup_restore_courses_tools::STATUS_PERFORMED,
+        $source = block_my_external_backup_restore_courses_tools::SOURCE_CLI,
+        $internalcategory=0, $withuserdatas=0, $enrolmentmode=2
+    ) {
+        global $DB;
+        if (!$DB->get_record('course', array('id'=>$courseid))){
+            throw new moodle_exception("course with id $courseid does not exist");
+        }
+        if (!empty($internalcategory) && $DB->get_record('course_categories', array('id'=>$internalcategory))) {
+            throw new moodle_exception("category with id $internalcategory does not exist");
+        }
+        $record = new stdClass();
+        $record->userid = $userid;
+        $record->externalcourseid = $externalcourseid;
+        $record->externalcoursename = $externalcoursename;
+        $record->externalmoodleurl = $externalmoodleurl;
+        $record->courseid = $courseid;
+        $record->internalcategory = $internalcategory;
+        $record->withuserdatas = $withuserdatas;
+        $record->enrolmentmode = $enrolmentmode;
+        $record->source = $source;
+        $record->status = $status;
+        $DB->insert_record('block_external_backuprestore', $record);
     }
 }
 
