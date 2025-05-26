@@ -66,8 +66,27 @@ $help =
     "install complete webservice (service, role, user and user assignment) for a moodle server for block my_external_backup_restore_courses
 
 Options:
--v, --verbose         Print verbose progess information
--h, --help            Print out this help
+-v, --verbose            : Print verbose progess information
+-h, --help               : Print out this help
+-e, --externalcourseid   : Required remote moodle course id
+-n, --externalcoursename : Required remote moodle course name
+-u, --externalmoodleurl  : Required remote moodle url
+-c, --courseid           : Course id in local moodle
+-i, --internalcategory   : Required internal category where course is restored
+-s, --status             :  Optional Task status int value, 2 by default (performed)
+                            0 -> Scheduled
+                            1 -> In progress
+                            2 -> Performed
+                            -1 -> Error  
+-z, --source             : source of the task , cli by default
+-w, --withuserdatas      : Optional with user datas, 1 by default
+-m, --enrolmentmode      : Optional enrolment mode, 2 by default
+                           0 -> Restore users as manual enrolments
+                           1 -> Yes, but only if users are included
+                           2 -> Always     
+
+php /var/www/moodle_path/blocks/my_external_backup_restore_courses/cli/add_task.php --externalcourseid=19 --externalmoodleurl="https://dotchnieba.di.unistra.fr/moodle405unistra" --externalcoursename="Very brand new course" --courseid=2
+
 
 Example:
 \$ sudo -u www-data /usr/bin/php /var/www/moodle/block/my_external_backup_restore_courses/cli/add_task.php --externalcourseid=//externalcourseid --externalmoodleurl=//externalmoodleurl --externalcoursename=//externalcoursename --courseid=//internalcourseid 

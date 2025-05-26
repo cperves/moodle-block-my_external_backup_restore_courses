@@ -940,7 +940,7 @@ class block_my_external_backup_restore_courses_task{
         $externalcourseid, $externalcoursename, $externalmoodleurl,$courseid,
         $status = block_my_external_backup_restore_courses_tools::STATUS_PERFORMED,
         $source = block_my_external_backup_restore_courses_tools::SOURCE_CLI,
-        $internalcategory=0, $withuserdatas=0, $enrolmentmode=2
+        $internalcategory=0, $withuserdatas=1, $enrolmentmode=2
     ) {
         global $DB;
         if (!$DB->get_record('course', array('id'=>$courseid))){
