@@ -467,8 +467,9 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                                 backup::ENROL_WITHUSERS => get_string('rootsettingenrolments_withusers', 'backup'),
                                 backup::ENROL_ALWAYS    => get_string('rootsettingenrolments_always', 'backup'),
                             );
+                            $disabledoption = $scheduledinfo && $scheduledinfo->status != block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED ? ['disabled' => true] : [];
                             $enrolmentmodetablecell->text .= html_writer::select($enrolmentmodeoptions,'enrolmentmode_'.$course->id,
-                                $enrolmentmodechoice, false);
+                                $enrolmentmodechoice, false,$disabledoption );
                         }
                         $statetablecell = new html_table_cell();
                         $statetablecell->attributes['class'] = 'wrap';
