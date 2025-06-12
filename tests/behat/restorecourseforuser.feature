@@ -19,29 +19,26 @@ Feature:
       | defaultcategorychecked| 0|block_my_external_backup_restore_courses|
       | onlyoneremoteinstance | 1 |block_my_external_backup_restore_courses|
       | checkrequestercapascoursecreate | 0 |block_my_external_backup_restore_courses|
-      | enablewebservices               | 1 ||
     And the following course exists:
       | name      | Test course |
       | shortname | C1          |
     And the following "course enrolments" exist:
       | user     | course | role   |
       | teacher1 | C1     | editingteacher |
-    Then I log in as "admin"
+
+
+
+  @javascript
+  Scenario: Restore a course for other user, without userid nor datas
+    When I log in as "admin"
     And I navigate to "Appearance > Default Dashboard page" in site administration
     And I turn editing mode on
     And I add the "Restore courses from remote Moodles" block
     And I press "Reset Dashboard for all users"
     And I wait "1" seconds
     And I click on "Continue" "button"
-    Then I navigate to "Server > Web services > Manage protocols" in site administration
-    And I click on "#webserviceprotocols .cell.c2 a" "css_element"
-
-
-  @javascript
-  Scenario: Restore a course for other user, without userid nor datas
-    When I log in as "admin"
     And I navigate to "Plugins > Blocks > Restore courses from remote Moodles > Restore course for user" in site administration
-    And I set the field "External course id" to last created course id
+    And I set the field "Remote course id" to last created course id
     And I click on "Planify course restoration" "button"
     And I navigate to "Plugins > Blocks > Restore courses from remote Moodles > Backup/restore task administration tool" in site administration
     And I should see "Test course 1"
@@ -64,10 +61,16 @@ Feature:
 
   @javascript
   Scenario: Restore a course for other user, without userid nor datas but with more that two remotes platforms
-    When a myexternalbackuprestorecourses fake mock server is added
+    When a myexternalbackuprestorecourses mock server is configured
     And I log in as "admin"
+    And I navigate to "Appearance > Default Dashboard page" in site administration
+    And I turn editing mode on
+    And I add the "Restore courses from remote Moodles" block
+    And I press "Reset Dashboard for all users"
+    And I wait "1" seconds
+    And I click on "Continue" "button"
     And I navigate to "Plugins > Blocks > Restore courses from remote Moodles > Restore course for user" in site administration
-    And I set the field "External course id" to last created course id
+    And I set the field "Remote course id" to last created course id
     And I click on "//descendant::input[@name='externalmoodleurl'][1]" "xpath_element"
     And I click on "Planify course restoration" "button"
     And I navigate to "Plugins > Blocks > Restore courses from remote Moodles > Backup/restore task administration tool" in site administration

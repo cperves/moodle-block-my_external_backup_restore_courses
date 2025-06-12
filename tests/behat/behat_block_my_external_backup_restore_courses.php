@@ -35,29 +35,15 @@ class behat_block_my_external_backup_restore_courses extends behat_base {
      * @Given /^a myexternalbackuprestorecourses mock server is configured$/
      */
     public function mock_is_configured(): void {
-        global $CFG;
-        // Create role,user and token for webservice
-        $token = self::install_webservice_moodle_server();
-        set_config('external_moodles', $CFG->behat_wwwroot.",".$token, 'block_my_external_backup_restore_courses');
-    }
-
-    /**
-     * add local server as external moodle to perform behat tests.
-     *
-     * @When /^a myexternalbackuprestorecourses fake mock server is added$/
-     */
-    public function mock_server_add(): void {
         global $CFG, $DB;
+        require_once($CFG->dirroot.'/webservice/lib.php');
+        require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/locallib.php');
+        set_config('enablewebservices', 1);
+        $class = \core_plugin_manager::resolve_plugininfo_class('webservice');
+        $class::enable_plugin('rest', true);
         // Create role,user and token for webservice
-        $webservicemanager = new webservice();
-        $webservice = $webservicemanager->get_external_service_by_shortname('wsblockmyexternalbakcuprestorecourses',
-            MUST_EXIST);
-        $wsuser = $DB->get_record('user', array('username' => self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_DEFAULT_USER));
-        $systemcontext = context_system::instance();
-        $token = \core_external\util::generate_token(EXTERNAL_TOKEN_PERMANENT, $webservice, $wsuser->id, $systemcontext);
-        $externalmoodles = get_config('block_my_external_backup_restore_courses', 'external_moodles');
-        $externalmoodles = (empty($externalmoodles) ? '' : $externalmoodles.';').$CFG->wwwroot."/fake,".$token;
-        set_config('external_moodles', $externalmoodles, 'block_my_external_backup_restore_courses');
+        $token =  block_my_external_backup_restore_courses_tools::install_webservice_moodle_server();
+        set_config('external_moodles', $CFG->behat_wwwroot.",".$token, 'block_my_external_backup_restore_courses');
     }
 
     public static function install_webservice_moodle_server() {
@@ -66,14 +52,9 @@ class behat_block_my_external_backup_restore_courses extends behat_base {
         $systemcontext = context_system::instance();
         $rolerecord = $DB->get_record('role', array('shortname' => self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE));
         $wsroleid = 0;
-        if ($rolerecord) {
-            $wsroleid = $rolerecord->id;
-            cli_writeln('role '.self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE.' already exists, we\'ll use it');
-        } else {
-            $wsroleid = create_role(self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE,
+        $wsroleid = create_role(self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE,
                 self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE,
                 self::BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE);
-        }
         assign_capability('block/my_external_backup_restore_courses:can_see_backup_courses', CAP_ALLOW,
             $wsroleid, $systemcontext->id, true);
         assign_capability('block/my_external_backup_restore_courses:can_retrieve_courses', CAP_ALLOW,

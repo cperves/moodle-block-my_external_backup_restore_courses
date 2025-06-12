@@ -1,8 +1,7 @@
-@block @block_my_external_backup_restore_courses
+@block @block_my_external_backup_restore_courses @javascript
 
 Feature:
   As a editingteacher I Want to restore a course from a remote plate-forme
-
   Background:
     Given a myexternalbackuprestorecourses mock server is configured
     And the following "cohorts" exist:
@@ -24,35 +23,31 @@ Feature:
       | defaultcategorychecked| 0|block_my_external_backup_restore_courses|
       | onlyoneremoteinstance | 1 |block_my_external_backup_restore_courses|
       | checkrequestercapascoursecreate | 0 |block_my_external_backup_restore_courses|
-      | enablewebservices               | 1 ||
     And the following course exists:
       | name      | Test course |
       | shortname | C1          |
     And the following "cohort members" exist:
       | user  | cohort |
       | student2 | Ch1    |
-    Then I log in as "admin"
-    And I add "Cohort sync" enrolment method in "C1" with:
-      | Cohort | Cohort one |
     And the following "course enrolments" exist:
       | user     | course | role   |
       | teacher1 | C1     | editingteacher |
       | student1 | C1     | student |
-    And I navigate to "Appearance > Default Dashboard page" in site administration
-    And I turn editing mode on
-    And I add the "Restore courses from remote Moodles" block
-    And I press "Reset Dashboard for all users"
-    And I wait "1" seconds
-    And I click on "Continue" "button"
-    Then I navigate to "Server > Web services > Manage protocols" in site administration
-    And I click on "#webserviceprotocols .cell.c2 a" "css_element"
+
 
 
   @javascript
   Scenario: Restore a course for other user, without usersdatas and with enolmentmode to ENROL_ALWAYS
     When I log in as "admin"
+    And I add "Cohort sync" enrolment method in "C1" with:
+      | Cohort | Cohort one |
+    And I navigate to "Appearance > Default Dashboard page" in site administration
+    And I turn editing mode on
+    And I add the "Restore courses from remote Moodles" block
+    And I press "Reset Dashboard for all users"
+    And I wait "1" seconds
     And I navigate to "Plugins > Blocks > Restore courses from remote Moodles > Restore course for user" in site administration
-    And I set the field "External course id" to last created course id
+    And I set the field "Remote course id" to last created course id
     And the "#id_enrolmentmode option[value='1']" "css_element" should be disabled
     And I select "Yes, always" from the "Include enrolment methods mode" singleselect
     And I click on "Planify course restoration" "button"
@@ -72,8 +67,15 @@ Feature:
   @javascript
   Scenario: Restore a course for other user, without usersdatas and with enolmentmode to ENROL_NEVER
     When I log in as "admin"
+    And I add "Cohort sync" enrolment method in "C1" with:
+      | Cohort | Cohort one |
+    And I navigate to "Appearance > Default Dashboard page" in site administration
+    And I turn editing mode on
+    And I add the "Restore courses from remote Moodles" block
+    And I press "Reset Dashboard for all users"
+    And I wait "1" seconds
     And I navigate to "Plugins > Blocks > Restore courses from remote Moodles > Restore course for user" in site administration
-    And I set the field "External course id" to last created course id
+    And I set the field "Remote course id" to last created course id
     And the "#id_enrolmentmode option[value='1']" "css_element" should be disabled
     And I select "No, restore users as manual enrolments" from the "Include enrolment methods mode" singleselect
     And I click on "Planify course restoration" "button"
@@ -92,8 +94,15 @@ Feature:
   @javascript
   Scenario: Restore a course for other user, with usersdatas and with enolmentmode to ENROL_ALWAYS
     When I log in as "admin"
+    And I add "Cohort sync" enrolment method in "C1" with:
+      | Cohort | Cohort one |
+    And I navigate to "Appearance > Default Dashboard page" in site administration
+    And I turn editing mode on
+    And I add the "Restore courses from remote Moodles" block
+    And I press "Reset Dashboard for all users"
+    And I wait "1" seconds
     And I navigate to "Plugins > Blocks > Restore courses from remote Moodles > Restore course for user" in site administration
-    And I set the field "External course id" to last created course id
+    And I set the field "Remote course id" to last created course id
     And I set the field "withuserdatas" to "checked"
     And I select "Yes, always" from the "Include enrolment methods mode" singleselect
     And I click on "Planify course restoration" "button"
@@ -113,8 +122,15 @@ Feature:
   @javascript
   Scenario: Restore a course for other user, with usersdatas and with enolmentmode to ENROL_ALWAYS
     When I log in as "admin"
+    And I add "Cohort sync" enrolment method in "C1" with:
+      | Cohort | Cohort one |
+    And I navigate to "Appearance > Default Dashboard page" in site administration
+    And I turn editing mode on
+    And I add the "Restore courses from remote Moodles" block
+    And I press "Reset Dashboard for all users"
+    And I wait "1" seconds
     And I navigate to "Plugins > Blocks > Restore courses from remote Moodles > Restore course for user" in site administration
-    And I set the field "External course id" to last created course id
+    And I set the field "Remote course id" to last created course id
     And I set the field "withuserdatas" to "checked"
     And I select "Yes, but only if users are included" from the "Include enrolment methods mode" singleselect
     And I click on "Planify course restoration" "button"

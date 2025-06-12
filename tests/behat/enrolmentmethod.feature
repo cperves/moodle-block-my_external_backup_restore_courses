@@ -23,7 +23,6 @@ Feature:
       | defaultcategorychecked| 0|block_my_external_backup_restore_courses|
       | onlyoneremoteinstance | 1 |block_my_external_backup_restore_courses|
       | checkrequestercapascoursecreate | 0 |block_my_external_backup_restore_courses|
-      | enablewebservices               | 1 ||
     And the following course exists:
       | name      | Test course |
       | shortname | C1          |
@@ -37,8 +36,6 @@ Feature:
     And I press "Reset Dashboard for all users"
     And I wait "1" seconds
     And I click on "Continue" "button"
-    Then I navigate to "Server > Web services > Manage protocols" in site administration
-    And I click on "#webserviceprotocols .cell.c2 a" "css_element"
 
 
   @javascript
