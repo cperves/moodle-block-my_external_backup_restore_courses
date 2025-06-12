@@ -53,7 +53,7 @@ php /moodlepath/admin/cli/upgrade.php
 /moodlepath/blocks/my_external_backup_restore_courses/cli/install_server.php
 ```
 ##### generate token
-* Under Site administration -> Plugins -> Web Services -> Manage Tokens
+* Under Site administration -> Server -> Web Services -> Manage Tokens
   * create a new token, restricted on your php server(s) for the custom external service previously created
     * cli user is named block_my_external_backup_restore_courses_user
   * This token will be one to be entered in the block parameters of block_my_external_backup_restore_courses on course client.
@@ -74,7 +74,7 @@ This will return the webservice token.
 * Go to settings page Site administration -> Plugins -> Restore courses from remote Moodles -> Settings
 * And set the following value
 *  moodle_role
-* Choose "Course client"
+  * Choose "Course client"
 * search_roles
   * Set the moodle roles that will be used to search courses for users
     * The available courses for restauration will be the one where the current user is enrolled in course or course category with the defined role assignment
