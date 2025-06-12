@@ -145,7 +145,6 @@ $string['withuserdatas'] = 'With user datas';
 $string['enrolmentmode'] = 'Include enrolment methods mode';
 $string['planifyrestore'] = 'Planify restoration';
 $string['settings'] = 'Settings';
-$string['externalcourseid'] = 'External course id';
 $string['planifyrestore'] = 'Planify course restoration';
 $string['userid'] = 'User id';
 $string['externalmoodleurl'] = "Remote moodle url";
