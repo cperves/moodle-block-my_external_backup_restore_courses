@@ -191,6 +191,7 @@ class course_restoration_task extends base {
                         'task_status',
                         $row->id,
                         true,
+                        $row->internalcategory,
                         $row->internalcategory
                     );
                     return $OUTPUT->render($editplace);
