@@ -178,4 +178,4 @@ $string['errorstatus'] = 'Error';
 $string['managetasks'] = 'Manage scheduled tasks';
 $string['status'] = 'Status';
 $string['id'] = 'Id';
-$string['shortnameXfullname'] = '{$a->fullname} ({$a->shortname}) ';
+$string['shortnameXfullname'] = '{$a->id} {$a->fullname} ({$a->shortname}) ';
