@@ -26,8 +26,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2025061200;
-$plugin->release = '3.2.3';
+$plugin->version = 2025061902;
+$plugin->release = '3.2.4';
 $plugin->maturity   = MATURITY_STABLE;
 $plugin->requires = 2024100701;
 // Full name of the plugin (used for diagnostics).

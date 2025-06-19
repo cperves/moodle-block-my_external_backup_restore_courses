@@ -110,6 +110,21 @@ function xmldb_block_my_external_backup_restore_courses_upgrade($oldversion=0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
+        upgrade_block_savepoint(true, $newversion, 'my_external_backup_restore_courses');
+
+    }
+    $newversion = 2025061902;
+    if ($oldversion < $newversion) {
+        $dbman = $DB->get_manager();
+        $table = new xmldb_table('block_external_backuprestore');
+        $field = new xmldb_field('source');
+        if ($dbman->field_exists($table, $field)) {
+            $field = new xmldb_field('source', XMLDB_TYPE_CHAR, '256',
+                null, XMLDB_NOTNULL, null, 'internal');
+            $dbman->change_field_notnull($table, $field);
+            $dbman->change_field_default($table, $field);
+        }
+        upgrade_block_savepoint(true, $newversion, 'my_external_backup_restore_courses');
     }
     return true;
 }
