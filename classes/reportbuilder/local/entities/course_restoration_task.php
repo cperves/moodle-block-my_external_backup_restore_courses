@@ -126,8 +126,21 @@ class course_restoration_task extends base {
             new column(
                 'courseid', new lang_string('courseid', 'block_my_external_backup_restore_courses'), $this->get_entity_name()
             ))
-            ->set_type(column::TYPE_INTEGER)
+            ->set_type(column::TYPE_TEXT)
             ->add_field("{$tablealias}.courseid")
+            ->set_callback(
+                static function(?string $value, stdClass $row): string {
+                    global $DB;
+                    if ($row->courseid) {
+                        $course = $DB->get_record('course', array('id' => $row->courseid));
+                    }
+                    return ($row->courseid ?
+                        html_writer::link(new moodle_url('/course/view.php',
+                            ['id' => $row->courseid]),get_string('shortnameXfullname',
+                            'block_my_external_backup_restore_courses',$course))
+                        : '');
+                }
+            )
             ->set_is_sortable(true);
         $columns[] = (
             new column(

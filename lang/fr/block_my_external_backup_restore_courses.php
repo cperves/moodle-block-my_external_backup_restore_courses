@@ -161,3 +161,4 @@ $string['courseclient'] = 'Client de cours';
 $string['courseserver'] = 'Serveur de cours';
 $string['bothclientserver'] = 'Client et serveur de cours';
 $string['source'] = 'Source';
+$string['shortnameXfullname'] = '{$a->fullname} ({$a->shortname}) ';
