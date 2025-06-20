@@ -27,8 +27,9 @@ use core_reportbuilder\system_report_factory;
 
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
-
-admin_externalpage_setup('my_external_backup_restore_courses_admin', '', array(), new moodle_url('/blocks/my_external_backup_restore_courses/admin/index.php',array()));
+//TODO breadcrumb
+admin_externalpage_setup('my_external_backup_restore_courses_admin', '', array(),
+    new moodle_url('/blocks/my_external_backup_restore_courses/admin/restorecourseforuser.php',array()));
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('managetasks', 'block_my_external_backup_restore_courses'));
 $report = system_report_factory::create(course_restoration_tasks::class, context_system::instance());
