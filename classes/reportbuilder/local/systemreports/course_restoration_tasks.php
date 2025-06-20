@@ -62,6 +62,8 @@ class course_restoration_tasks extends system_report {
             $entitityname.':timemodified',
             $entitityname.':timescheduleprocessed',
         ]);
+        $this->set_initial_sort_column($entitityname.':id', SORT_DESC);
+
     }
 
     protected function add_filters(): void {
