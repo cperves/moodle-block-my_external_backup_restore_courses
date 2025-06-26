@@ -1076,9 +1076,7 @@ class block_my_external_backup_restore_courses_task_error_list {
             foreach ($this->taskerrors as $taskerrors) {
                 if ($eventdata == null) {
                     $user = $taskerrors->get_user();
-                    if (!$user) {
-                        throw new moodle_exception('user '.$taskerrors->_get('usernameorid').' not found');
-                    }
+                    // User can be empty if restored by admin web tool without user
                     // Current messaging.
                     $eventdata = new \core\message\message();
                     $eventdata->component = 'block_my_external_backup_restore_courses';
@@ -1099,9 +1097,11 @@ class block_my_external_backup_restore_courses_task_error_list {
                     'block_my_external_backup_restore_courses', $taskerrors->get_lang_object());
             }
             // For owner.
-            $eventdata->userto = $user;
-            $eventdata->fullmessagehtml = str_replace('\n', '<br/>', $eventdata->fullmessage ?? '');
-            $result = message_send($eventdata);
+            if (!empty($user)) {
+                $eventdata->userto = $user;
+                $eventdata->fullmessagehtml = str_replace('\n', '<br/>', $eventdata->fullmessage ?? '');
+                $result = message_send($eventdata);
+            }
             // For admins.
             $admins = get_admins();
             $eventdata->fullmessage .= $fullmessage;
