@@ -179,3 +179,5 @@ $string['managetasks'] = 'Manage scheduled tasks';
 $string['status'] = 'Status';
 $string['id'] = 'Id';
 $string['shortnameXfullname'] = '{$a->id} {$a->fullname} ({$a->shortname}) ';
+$string['withuserdatas_true'] = 'True';
+$string['withuserdatas_true'] = 'False';
