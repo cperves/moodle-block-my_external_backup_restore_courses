@@ -36,6 +36,7 @@ use core_reportbuilder\local\report\column;
 use core_reportbuilder\local\report\filter;
 use lang_string;
 use moodle_url;
+use PhpOffice\PhpSpreadsheet\Calculation\Logical\Boolean;
 use stdClass;
 
 require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/locallib.php');
@@ -108,6 +109,21 @@ class course_restoration_task extends base {
                 );
                 return $selectmenu;
             });
+        $columns[] = (
+        new column(
+            'withuserdatas', new lang_string('withuserdatas', 'block_my_external_backup_restore_courses'), $this->get_entity_name()
+        ))
+        ->set_type(column::TYPE_BOOLEAN)
+        ->set_callback(
+            static function(?bool $value, stdClass $row): string {
+                return $row->withuserdatas ==1 ?
+                    get_string('withuserdatas_true', 'block_my_external_backup_restore_courses')
+                    :get_string('withuserdatas_false', 'block_my_external_backup_restore_courses');
+            }
+        )
+        ->add_fields("{$tablealias}.withuserdatas")
+        ->set_is_sortable(false);
+
         $columns[] = (
         new column(
             'source', new lang_string('source', 'block_my_external_backup_restore_courses'), $this->get_entity_name()

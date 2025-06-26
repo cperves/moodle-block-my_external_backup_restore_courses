@@ -52,6 +52,7 @@ class course_restoration_tasks extends system_report {
             $entitityname.':status',
             $entitityname.':id',
             $entitityname.':courseid',
+            $entitityname.':withuserdatas',
             $entitityname.':externalcoursename',
             $entitityname.':externalcourseid',
             $entitityname.':userid',
