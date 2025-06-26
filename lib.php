@@ -45,6 +45,16 @@ function block_my_external_backup_restore_courses_inplace_editable($itemtype, $i
             $newvalue = clean_param($newvalue, PARAM_INT);
             block_my_external_backup_restore_courses_tools::update_status($itemid, $newvalue);
             break;
+        case 'task_internalcategory_id':
+            require_capability('block/my_external_backup_restore_courses:change_internalcategory_id', $context);
+            $newvalue = clean_param($newvalue, PARAM_INT);
+            block_my_external_backup_restore_courses_tools::update_internalcategory($itemid, $newvalue);
+            break;
+        case 'task_userid':
+            require_capability('block/my_external_backup_restore_courses:change_userid', $context);
+            $newvalue = clean_param($newvalue, PARAM_INT);
+            block_my_external_backup_restore_courses_tools::update_userid($itemid, $newvalue);
+            break;
         default:
             throw new coding_exception(
                 'Unexpected block_my_external_backup_restore_courses inplace editable item type'

@@ -92,7 +92,14 @@ $capabilities = array(
         'archetypes' => array(
         ),
     ),
-    'block/my_external_backup_restore_courses:change_internalcategoryid' => array(
+    'block/my_external_backup_restore_courses:change_internalcategory_id' => array(
+        'riskbitmask' => RISK_PERSONAL,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+        ),
+    ),
+    'block/my_external_backup_restore_courses:change_userid' => array(
         'riskbitmask' => RISK_PERSONAL,
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,

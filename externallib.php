@@ -224,6 +224,9 @@ class block_my_external_backup_restore_courses_external extends external_api {
                 'internalcategoryid' => $internalcategoryid,
             ]
         );
+        require_capability('block/my_external_backup_restore_courses:change_internalcategory_id',
+            context_system::instance()
+        );
         block_my_external_backup_restore_courses_tools::update_internalcategory($taskid, $internalcategoryid);
         return ['internalcategoryid'=> $internalcategoryid];
     }
@@ -231,6 +234,34 @@ class block_my_external_backup_restore_courses_external extends external_api {
     public static function change_internalcategory_id_returns(): external_single_structure {
         return new external_single_structure([
             'internalcategoryid' => new external_value(PARAM_INT, 'internalcategoryid value applied to task'),
+        ]);
+    }
+
+    public static function change_userid_parameters(): external_function_parameters {
+        return new external_function_parameters([
+            'taskid' => new external_value(PARAM_INT, 'task id', VALUE_REQUIRED),
+            'userid' => new external_value(PARAM_INT, 'userid value', VALUE_REQUIRED),
+        ]);
+    }
+
+    public static function change_userid($taskid, $userid)
+    {
+        require_capability('block/my_external_backup_restore_courses:change_userid',
+            context_system::instance()
+        );
+        self::validate_parameters(self::change_userid_parameters(),
+            [
+                'taskid' => $taskid,
+                'userid' => $userid,
+            ]
+        );
+        block_my_external_backup_restore_courses_tools::update_userid($taskid, $userid);
+        return ['userid'=> $userid];
+    }
+
+    public static function change_userid_returns(): external_single_structure {
+        return new external_single_structure([
+            'userid' => new external_value(PARAM_INT, 'userid value applied to task'),
         ]);
     }
 }

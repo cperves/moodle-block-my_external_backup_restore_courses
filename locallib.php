@@ -411,6 +411,20 @@ class block_my_external_backup_restore_courses_tools {
         $DB->update_record('block_external_backuprestore', $record);
     }
 
+    public static function update_userid($id, $userid) {
+        global $DB;
+        $record = $DB->get_record('block_external_backuprestore', array('id' => $id));
+        if (!$record) {
+            throw new moodle_exception("block_my_external_backup_restore_courses task not found for id $id");
+        }
+        $record = $DB->get_record('user', array('id' => $id));
+        if (!$record) {
+            throw new moodle_exception("user not found with id $userid for task $id");
+        }
+        $record->userid = $userid;
+        $DB->update_record('block_external_backuprestore', $record);
+    }
+
     public static function update_internalcategory($id, $internalcategoryid) {
         global $DB;
         $record = $DB->get_record('block_external_backuprestore', array('id' => $id));

@@ -26,6 +26,26 @@ export const changeinternalcategory = async (id) => {
 
 };
 
+export const changeuserid = async (id) => {
+    //AJAX call to webservice
+    var selectelt = document.getElementById('user_'+id);
+    await new Promise(resolve => {
+        return Ajax.call([{
+            methodname: 'block_my_external_backup_restore_courses_change_userid',
+            args: {
+                'taskid': id,
+                'userid': selectelt.value,
+            },
+            done: result => {
+                resolve(result);
+
+            },
+            fail: notification.exception
+        }]);
+    });
+
+};
+
 export const changestatus = async (id) => {
     //AJAX call to webservice
     var selectelt = document.getElementById('menustatus_select_'+id);

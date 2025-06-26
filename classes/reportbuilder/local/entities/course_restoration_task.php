@@ -71,13 +71,17 @@ class course_restoration_task extends base {
     protected function get_all_columns(): array
     {
         global $PAGE;
-        // Loading amd without explicite functionname not works.
+        // Loading amd without explicite function name not works.
         $jscode =
             "require(['block_my_external_backup_restore_courses/changetaskfields'],
                 function(changetaskfields) {
                     changeinternalcategory = function(id) {
                         changetaskfields.changeinternalcategory(id);
                     }
+                    changeuserid = function(id) {
+                        changetaskfields.changeuserid(id);
+                    }
+                    
                     changestatus = function(id) {
                         changetaskfields.changestatus(id);
                     }
@@ -116,9 +120,9 @@ class course_restoration_task extends base {
         ->set_type(column::TYPE_BOOLEAN)
         ->set_callback(
             static function(?bool $value, stdClass $row): string {
-                return $row->withuserdatas ==1 ?
+                return $row->withuserdatas == 1 ?
                     get_string('withuserdatas_true', 'block_my_external_backup_restore_courses')
-                    :get_string('withuserdatas_false', 'block_my_external_backup_restore_courses');
+                    : get_string('withuserdatas_false', 'block_my_external_backup_restore_courses');
             }
         )
         ->add_fields("{$tablealias}.withuserdatas")
@@ -187,7 +191,31 @@ class course_restoration_task extends base {
             'userid', new lang_string('userid', 'block_my_external_backup_restore_courses'), $this->get_entity_name()
         ))
             ->set_type(column::TYPE_INTEGER)
-            ->add_field("{$tablealias}.userid")
+            ->add_fields("{$tablealias}.userid, {$tablealias}.id")
+            ->set_callback(
+                static function(?int $value, stdClass $row): string {
+                    global $OUTPUT;
+                    $edittext = html_writer::empty_tag(
+                        'input',
+                        [
+                            'id' => 'user_' . $row->id,
+                            'value' => $row->userid,
+                            'onkeydown' => 'if(event.keyCode == 13) changeuserid(' . $row->id . ')',
+                            'disabled' => ''
+                        ]
+                    );
+                    //return $edittext;
+                    $editplace = new inplace_editable(
+                        'block_my_external_backup_restore_courses',
+                        'task_userid',
+                        $row->id,
+                        true,
+                        $row->userid,
+                        $row->userid
+                    );
+                    return $OUTPUT->render($editplace);
+                }
+            )
             ->set_is_sortable(true);
         $columns[] = (
         new column(
@@ -217,7 +245,7 @@ class course_restoration_task extends base {
                     //return $edittext;
                     $editplace = new inplace_editable(
                         'block_my_external_backup_restore_courses',
-                        'task_status',
+                        'task_internalcategory_id',
                         $row->id,
                         true,
                         $row->internalcategory,
@@ -358,8 +386,7 @@ class course_restoration_task extends base {
                 new lang_string('userid', 'block_my_external_backup_restore_courses'),
                 $this->get_entity_name(),
                 "{$tablealias}.userid"
-            ))
-                ->add_joins($this->get_joins());
+            ))->add_joins($this->get_joins());
         $filters[] =
             (new filter(
                 select::class,

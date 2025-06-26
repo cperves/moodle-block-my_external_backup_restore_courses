@@ -61,6 +61,15 @@ $functions = array(
         'type' => 'write',
         'ajax' => true,
         'capabilities' => 'block/my_external_backup_restore_courses:change_internalcategoryid',
+    ),
+    'block_my_external_backup_restore_courses_change_userid' => array(
+        'classname' => 'block_my_external_backup_restore_courses_external',
+        'methodname' => 'change_userid',
+        'classpath' => 'blocks/my_external_backup_restore_courses/externallib.php',
+        'description' => 'change task userid',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'block/my_external_backup_restore_courses:change_userid',
     )
 );
 
