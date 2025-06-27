@@ -63,7 +63,7 @@ if ($unrecognized) {
 }
 
 $help =
-    "install complete webservice (service, role, user and user assignment) for a moodle server for block my_external_backup_restore_courses
+    "Add a course task to restore to course task table, Usefull for example when you use moosh to restore a course and do not want an other instance
 
 Options:
 -v, --verbose            : Print verbose progess information
@@ -85,7 +85,7 @@ Options:
                            1 -> Yes, but only if users are included
                            2 -> Always     
 
-php /var/www/moodle_path/blocks/my_external_backup_restore_courses/cli/add_task.php --externalcourseid=19 --externalmoodleurl="https://dotchnieba.di.unistra.fr/moodle405unistra" --externalcoursename="Very brand new course" --courseid=2
+php /var/www/moodle_path/blocks/my_external_backup_restore_courses/cli/add_task.php --externalcourseid=19 --externalmoodleurl=\"https://dotchnieba.di.unistra.fr/moodle405unistra\" --externalcoursename=\"Very brand new course\" --courseid=2
 
 
 Example:

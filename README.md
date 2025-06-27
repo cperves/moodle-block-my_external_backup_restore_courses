@@ -129,20 +129,26 @@ php /moodle_path/admin/cli/cfg.php --component='block_my_external_backup_restore
 php /moodlepath/admin/cli/scheduled_task.php --execute="\block_my_external_backup_restore_courses\task\backup_restore_task"
 ```
 
-## Configure block for users capability
+### Configure block for users capability
 On moodle course client moodleC
 * In order to use this block in dashboard a capability block/my_external_backup_restore_courses:view is provided and by default allowed for coursecreator and manager profile
 * This enable to control block visibility in dashboard
 * course restore and backup is virtually proceed with an admin account so the resquester user does not need special capabilities anymore
   * except course:create in category if checkrequestercapascoursecreate setting is checked in plugin settings
 
-## Messaging System for notifications
+### Messaging System for notifications
 * Site administration / ► Plugins / ► Message outputs / ► Default message outputs
 * 2 message outputs :
   * Notify that an external course as failed to restore
   * Notify that an external course is successfully restored
 * by default allowed and permitted for mails
-  
+
+### Additional tool
+#### Add a course to restore in task list
+* A cli command is provided
+  * in cli/add_task.php directory
+  * `php /moodle_path/blocks/my_external_backup_restore_courses/cli/add_task.php --help`
+  * e.g `php /moodle_path/block/my_external_backup_restore_courses/cli/add_task.php --externalcourseid=//externalcourseid --externalmoodleurl=//externalmoodleurl --externalcoursename=//externalcoursename --courseid=//internalcourseid`
 
 ## Troubleshooting
 In case of troubles with message "error/site name can't be retrieved for ..."
