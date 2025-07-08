@@ -183,3 +183,4 @@ $string['id'] = 'Id';
 $string['shortnameXfullname'] = '{$a->id} {$a->fullname} ({$a->shortname}) ';
 $string['withuserdatas_true'] = 'True';
 $string['withuserdatas_false'] = 'False';
+$string['deletedcourse'] = 'Deleted course';

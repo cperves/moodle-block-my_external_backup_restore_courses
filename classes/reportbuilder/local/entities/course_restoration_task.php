@@ -155,10 +155,18 @@ class course_restoration_task extends base {
                         $course = $DB->get_record('course', array('id' => $row->courseid));
                     }
                     return ($row->courseid ?
-                        html_writer::link(new moodle_url('/course/view.php',
-                            ['id' => $row->courseid]),get_string('shortnameXfullname',
-                            'block_my_external_backup_restore_courses',$course))
-                        : '');
+                            (
+                            $course == false ?
+                                html_writer::span(get_string('deletedcourse',
+                                    'block_my_external_backup_restore_courses'
+                                ))
+                                :
+                                html_writer::link(new moodle_url('/course/view.php',
+                                    ['id' => $row->courseid]),get_string('shortnameXfullname',
+                                    'block_my_external_backup_restore_courses',$course))
+                            )
+                            : ''
+                        );
                 }
             )
             ->set_is_sortable(true);
