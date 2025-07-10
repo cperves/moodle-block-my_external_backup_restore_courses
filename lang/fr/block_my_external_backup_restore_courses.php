@@ -165,6 +165,7 @@ $string['course_restoration_task'] = 'Entité tâche de restauration de cours';
 $string['my_external_backup_restore_courses:change_status'] = 'L\'utilisateur a la possibilité de changer le statut de la tâche de restauration du cours';
 $string['my_external_backup_restore_courses:change_internalcategory_id'] = 'L\'utilisateur a la possibilité de changer la l\'id de category interne de la tâche de restauration du cours';
 $string['my_external_backup_restore_courses:change_userid'] = 'L\'utilisateur a la possibilité de changer le userid de la tâche de restauration du cours';
+$string['my_external_backup_restore_courses:restore_courses_for_users'] = 'L\'utilisateur a la possibilité de de restaurer des cours pour un autre utilisateur.';
 $string['courseid'] = 'Id du Cours';
 $string['externalcoursename'] = 'Nom du cours distant';
 $string['externalcourseid'] = 'Id du cours distant';
