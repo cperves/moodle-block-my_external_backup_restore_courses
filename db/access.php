@@ -106,13 +106,6 @@ $capabilities = array(
         'archetypes' => array(
         ),
     ),
-    'block/my_external_backup_restore_courses:restore_courses_for_users' => array(
-        'riskbitmask' => RISK_PERSONAL,
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => array(
-        ),
-    ),
 
 
 

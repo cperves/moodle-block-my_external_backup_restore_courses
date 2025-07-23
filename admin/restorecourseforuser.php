@@ -13,19 +13,14 @@ require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/locallib.php');
 require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/admin/restorecourseforuser_form.php');
 
+admin_externalpage_setup('my_external_backup_restore_courses_restorecourseforuser', '', array(),
+    new moodle_url('/blocks/my_external_backup_restore_courses/admin/restorecourseforuser.php',array()));
 
-$systemcontext = context_system::instance();
-$PAGE->set_context($systemcontext);
-$PAGE->set_url(new moodle_url('/blocks/my_external_backup_restore_courses/admin/restorecourseforuser.php',array()));
-$PAGE->set_heading(get_string('adminrestorecourseforuser','block_my_external_backup_restore_courses'));
-require_login();
-require_capability('block/my_external_backup_restore_courses:restore_courses_for_users',
-context_system::instance()
-);
 
 $restorecourseforuserform= new block\my_external_backup_restore_courses\admin\restorecourseforuser_form();
 $PAGE->requires->js(new moodle_url('/blocks/my_external_backup_restore_courses/module.js'));
 echo $OUTPUT->header();
+echo $OUTPUT->heading(get_string('adminrestorecourseforuser','block_my_external_backup_restore_courses'));
 if ($data = $restorecourseforuserform->get_data()) {
     $externalmoodles = block_my_external_backup_restore_courses_tools::get_external_moodles_url_token();
     // Check course exists and retrieve course name.

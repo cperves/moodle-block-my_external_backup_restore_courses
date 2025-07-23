@@ -24,38 +24,18 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use core_admin\local\externalpage\accesscallback;
 
 defined('MOODLE_INTERNAL') || die;
 global $DB;
-$plugin = core_plugin_manager::instance()->get_plugin_info('block_my_external_backup_restore_courses');
-$ADMIN->add(
-    'root',
-    new admin_category('backuprestorecourseadmin',
-        get_string('backuprestorecourseadmin', 'block_my_external_backup_restore_courses'),
-        $plugin->is_enabled() === false
-    ));
-$ADMIN->add('backuprestorecourseadmin',
-    new accesscallback(
-        'my_external_backup_restore_courses_restorecourseforuser',
-        get_string('adminrestorecourseforuser', 'block_my_external_backup_restore_courses'),
-        (new moodle_url("/blocks/my_external_backup_restore_courses/admin/restorecourseforuser.php"))->out(),
-        static function(accesscallback $accesscallback): bool {
-            return has_capability('block/my_external_backup_restore_courses:restore_courses_for_users',
-            context_system::instance()
-            );
-        },
-    ));
 // Redefine admin menu
+$plugin = core_plugin_manager::instance()->get_plugin_info('block_my_external_backup_restore_courses');
 $myexternalfolder = new admin_category('blockmyexternalbackuprestorecoursesfolder',
     new lang_string('pluginname', 'block_my_external_backup_restore_courses'),
     $plugin->is_enabled() === false);
 $ADMIN->add('blocksettings', $myexternalfolder);
 $settings->visiblename = new lang_string('settings', 'block_my_external_backup_restore_courses');
 $ADMIN->add('blockmyexternalbackuprestorecoursesfolder', $settings);
-$systemcontext = context_system::instance();
-if ($hassiteconfig
-) {
+if ($hassiteconfig) {
     // Admin page declaration.
     $ADMIN->add('blockmyexternalbackuprestorecoursesfolder',
         new admin_externalpage(
@@ -63,12 +43,12 @@ if ($hassiteconfig
             get_string('adminpage', 'block_my_external_backup_restore_courses'),
             "$CFG->wwwroot/blocks/my_external_backup_restore_courses/admin/index.php",
             'moodle/site:config'));
-    /*$ADMIN->add('blockmyexternalbackuprestorecoursesfolder',
+    $ADMIN->add('blockmyexternalbackuprestorecoursesfolder',
         new admin_externalpage(
             'my_external_backup_restore_courses_restorecourseforuser',
             get_string('adminrestorecourseforuser', 'block_my_external_backup_restore_courses'),
             "$CFG->wwwroot/blocks/my_external_backup_restore_courses/admin/restorecourseforuser.php",
-            'moodle/site:config'));*/
+            'moodle/site:config'));
 
     // Plugin settings.
     $options = [

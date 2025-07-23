@@ -1,7 +1,6 @@
 # CHANGES
 * 2025-07-08:
   * fix restore course task when course deleted
-  * let restore for other user for non admin, based on a new capability  block/my_external_backup_restore_courses:restore_courses_for_users
 * 2025-06:
   * improve admin pages by using system report
   * restore for user without userid
