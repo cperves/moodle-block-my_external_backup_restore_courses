@@ -27,29 +27,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 global $DB;
-// Redefine admin menu
-$plugin = core_plugin_manager::instance()->get_plugin_info('block_my_external_backup_restore_courses');
-$myexternalfolder = new admin_category('blockmyexternalbackuprestorecoursesfolder',
-    new lang_string('pluginname', 'block_my_external_backup_restore_courses'),
-    $plugin->is_enabled() === false);
-$ADMIN->add('blocksettings', $myexternalfolder);
-$settings->visiblename = new lang_string('settings', 'block_my_external_backup_restore_courses');
-$ADMIN->add('blockmyexternalbackuprestorecoursesfolder', $settings);
 if ($hassiteconfig) {
-    // Admin page declaration.
-    $ADMIN->add('blockmyexternalbackuprestorecoursesfolder',
-        new admin_externalpage(
-            'my_external_backup_restore_courses_admin',
-            get_string('adminpage', 'block_my_external_backup_restore_courses'),
-            "$CFG->wwwroot/blocks/my_external_backup_restore_courses/admin/index.php",
-            'moodle/site:config'));
-    $ADMIN->add('blockmyexternalbackuprestorecoursesfolder',
-        new admin_externalpage(
-            'my_external_backup_restore_courses_restorecourseforuser',
-            get_string('adminrestorecourseforuser', 'block_my_external_backup_restore_courses'),
-            "$CFG->wwwroot/blocks/my_external_backup_restore_courses/admin/restorecourseforuser.php",
-            'moodle/site:config'));
-
     // Plugin settings.
     $options = [
         0 => get_string('courseclient', 'block_my_external_backup_restore_courses'),
@@ -205,6 +183,3 @@ if ($hassiteconfig) {
         1
     );
 }
-
-// Prevent Moodle from adding settings block in standard location.
-$settings = null;

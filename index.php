@@ -503,6 +503,9 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                                     case block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS:
                                         $buttonclass = 'tag tag-warning';
                                         break;
+                                    case block_my_external_backup_restore_courses_tools::STATUS_CANCELLED:
+                                        $buttonclass = 'tag tag-warning';
+                                        break;
                                     case block_my_external_backup_restore_courses_tools::STATUS_PERFORMED:
                                         $buttonclass = 'tag tag-success';
                                         break;
@@ -554,6 +557,8 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                                             block_my_external_backup_restore_courses_tools::STATUS_PERFORMED
                                         || $scheduledinfobyotheruserinfo->status ==
                                             block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS
+                                        || $scheduledinfobyotheruserinfo->status ==
+                                            block_my_external_backup_restore_courses_tools::STATUS_CANCELLED
                                 ) {
                                     $executiontimeinfo->executiontime =
                                             userdate($scheduledinfobyotheruserinfo->timescheduleprocessed);
@@ -632,6 +637,9 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                                 case block_my_external_backup_restore_courses_tools::STATUS_ERROR:
                                     $buttonclass = 'tag tag-danger';;
                                     break;
+                                case block_my_external_backup_restore_courses_tools::STATUS_CANCELLED:
+                                    $buttonclass = 'tag tag-warning';
+                                    break;
                                 case block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS:
                                     $buttonclass = 'tag tag-warning';
                                     break;
@@ -678,6 +686,7 @@ if ($externalmoodlescfg && !empty($externalmoodlescfg)) {
                                         'block_my_external_backup_restore_courses',
                                         $executiontimeinfo);
                             } else if ($scheduledinfo->status == block_my_external_backup_restore_courses_tools::STATUS_ERROR
+                                    || $scheduledinfo->status == block_my_external_backup_restore_courses_tools::STATUS_CANCELLED
                                     || $scheduledinfo->status == block_my_external_backup_restore_courses_tools::STATUS_PERFORMED
                                     || $scheduledinfo->status == block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS
                             ) {

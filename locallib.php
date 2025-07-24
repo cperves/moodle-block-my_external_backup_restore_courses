@@ -34,6 +34,7 @@ class block_my_external_backup_restore_courses_tools {
     const STATUS_INPROGRESS = 1;
     const STATUS_PERFORMED = 2;
     const STATUS_ERROR = -1;
+    const STATUS_CANCELLED = -2;
     const SOURCE_INTERNAL = 'internal';
     const SOURCE_CLI = 'cli';
     public const BLOCK_MY_EXTERNAL_BACKUP_RESTORE_COURSES_ROLE = 'block_my_external_backup_restore_courses_ws';
@@ -294,6 +295,7 @@ class block_my_external_backup_restore_courses_tools {
     public static function external_course_restored_or_on_way_by_other_users($externalcourseid, $externalmoodleurl, $localuserid) {
         global $DB;
         // Since admin can restore courses for other user without setting them localuserid can be set to 0
+        // Only status >= 0 : error and cancelled not take into account
         $sql = 'select b.*, u.username, u.lastname, u.firstname from {block_external_backuprestore} b
                     left join {user} u on u.id=b.userid
                     where externalcourseid=:externalcourseid and externalmoodleurl=:externalmoodleurl
@@ -478,6 +480,9 @@ abstract class block_my_external_backup_restore_courses_task_helper{
         $tasks = self::retrieve_tasks($defaultcategoryid);
         $defaultcategorycontext = context_coursecat::instance($defaultcategoryid);
         $externalmoodlesitenames = array();
+        if(empty($tasks)) {
+            mtrace('no course restoration task to execute');
+        }
         foreach ($tasks as $task) {
             $errors = new block_my_external_backup_restore_courses_task_error_list();
             $taskobject = new block_my_external_backup_restore_courses_task($task);
