@@ -92,8 +92,7 @@ abstract class backup_external_courses_helper {
         self::$userid = $userid;
         require_once($CFG->libdir.'/filelib.php');
 
-        // TODO remove when tested.
-        $status = true;
+
         $result = array(
                 self::BACKUP_STATUS_ERROR => 0,
                 self::BACKUP_STATUS_OK => 0,
@@ -102,14 +101,14 @@ abstract class backup_external_courses_helper {
                 self::BACKUP_STATUS_WARNING => 0
         );
 
-        if ($status) {
-            // This could take a while!
-            @set_time_limit(0);
-            raise_memory_limit(MEMORY_EXTRA);
-            $course = $DB->get_record('course', array('id' => self::$courseid));
-            $coursestatus = self::launch_automated_backup_delete($course, $withuserdatas);
-            $result[$coursestatus] += 1;
-        }
+
+        // This could take a while!
+        @set_time_limit(0);
+        raise_memory_limit(MEMORY_EXTRA);
+        $course = $DB->get_record('course', array('id' => self::$courseid));
+        $coursestatus = self::launch_automated_backup_delete($course, $withuserdatas);
+        $result[$coursestatus] += 1;
+
         return array(
             'filename' => self::$filename,
             'file_record_id' => self::$filerecordid

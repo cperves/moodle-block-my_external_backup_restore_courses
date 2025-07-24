@@ -1,4 +1,7 @@
 # CHANGES
+* 2025-07-23:
+  * extract admin tools into separated tool plugin (MDL-85987)
+  * add new Cancelled status
 * 2025-07-08:
   * fix restore course task when course deleted
 * 2025-06:
