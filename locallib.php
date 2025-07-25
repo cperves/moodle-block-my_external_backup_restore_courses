@@ -485,6 +485,11 @@ abstract class block_my_external_backup_restore_courses_task_helper{
         }
         foreach ($tasks as $task) {
             $errors = new block_my_external_backup_restore_courses_task_error_list();
+            // Just check that the task status has not changed : concurency access.
+            $record = $DB->get_record('block_external_backuprestore', array('id' => $task->id));
+            if ($record->status != block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED) {
+                continue;
+            }
             $taskobject = new block_my_external_backup_restore_courses_task($task);
             // Search externalmoodlesitename.
             if (!array_key_exists($task->externalmoodleurl, $externalmoodlesitenames)) {
