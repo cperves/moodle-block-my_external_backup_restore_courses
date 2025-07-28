@@ -149,7 +149,10 @@ On moodle course client moodleC
   * in cli/add_task.php directory
   * `php /moodle_path/blocks/my_external_backup_restore_courses/cli/add_task.php --help`
   * e.g `php /moodle_path/block/my_external_backup_restore_courses/cli/add_task.php --externalcourseid=//externalcourseid --externalmoodleurl=//externalmoodleurl --externalcoursename=//externalcoursename --courseid=//internalcourseid`
-
+#### admin tools
+* Since 3.2.7 version admin tools are located in a second plugin tool_my_external_backup_restore_courses
+  * https://moodle.org/plugins/tool_my_external_backup_restore_courses
+  * https://github.com/cperves/moodle-tool_my_external_backup_restore_courses
 ## Troubleshooting
 In case of troubles with message "error/site name can't be retrieved for ..."
 * check that the token is correct and that external_moodles is correctly filled in plugin settings
