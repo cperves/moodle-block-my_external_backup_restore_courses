@@ -29,11 +29,12 @@ defined('MOODLE_INTERNAL') || die();
 
 class block_my_external_backup_restore_courses_generator extends testing_block_generator {
 
-    public function create_backup_restore_entry($userid, $courseid, $categoryid) {
+    public function create_backup_restore_entry($userid, $restoredby, $courseid, $categoryid) {
         global $DB, $CFG;
         require_once($CFG->dirroot.'/blocks/my_external_backup_restore_courses/locallib.php');
         $datas = new stdClass();
         $datas->userid = $userid;
+        $datas->restoredby = $restoredby;
         $datas->externalcourseid = $courseid;
         $datas->externalmoodleurl = 'mock_external_url';
         $datas->externalmoodletoken = 'mock_external_token';

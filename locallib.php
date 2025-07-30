@@ -527,7 +527,7 @@ abstract class block_my_external_backup_restore_courses_task_helper{
                 }
             }
             $checkrequestercapascoursecreate =
-                get_config('local_my_external_backup_restore_courses', 'checkrequestercapascoursecreate');
+                get_config('block_my_external_backup_restore_courses', 'checkrequestercapascoursecreate');
             $hascapabilitycreatingcourseincategory = !$checkrequestercapascoursecreate
                 || has_capability('moodle/course:create', $taskcategorycontext, $task->requesterid);
             $hascapabilitycreatecourseindefaultcategory = !$checkrequestercapascoursecreate
@@ -960,7 +960,7 @@ class block_my_external_backup_restore_courses_task{
     }
 
     public static function create_task(
-        $userid,
+        $userid, $restoredby,
         $externalcourseid, $externalcoursename, $externalmoodleurl,$courseid,
         $status = block_my_external_backup_restore_courses_tools::STATUS_PERFORMED,
         $source = block_my_external_backup_restore_courses_tools::SOURCE_CLI,
@@ -984,6 +984,7 @@ class block_my_external_backup_restore_courses_task{
         $record->enrolmentmode = $enrolmentmode;
         $record->source = $source;
         $record->status = $status;
+        $record->restoredby = $restoredby;
         $DB->insert_record('block_external_backuprestore', $record);
     }
 }

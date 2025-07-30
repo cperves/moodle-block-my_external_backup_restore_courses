@@ -42,6 +42,7 @@ class locallib_test extends \advanced_testcase {
         $taskrecord = new stdClass();
         $taskrecord->externalmoodleurl = $CFG->wwwroot;
         $taskrecord->userid = 0;
+        $taskrecord->restoredby = get_admin()->id;
         $taskrecord->externalcourseid = 42;
         $taskrecord->internalcategory = 0;
         $taskrecord->internalcourseid = $defaultcategory->id;

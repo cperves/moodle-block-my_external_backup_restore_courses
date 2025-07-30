@@ -126,5 +126,23 @@ function xmldb_block_my_external_backup_restore_courses_upgrade($oldversion=0) {
         }
         upgrade_block_savepoint(true, $newversion, 'my_external_backup_restore_courses');
     }
+    $newversion = 2025072903;
+    if ($oldversion < $newversion) {
+        $dbman = $DB->get_manager();
+        $table = new xmldb_table('block_external_backuprestore');
+        $field = new xmldb_field('restoredby');
+        if (!$dbman->field_exists($table, $field)) {
+            $field = new xmldb_field('restoredby', XMLDB_TYPE_INTEGER, '10',
+                null, null, false);
+            $dbman->add_field($table, $field);
+            $DB->execute('update {block_external_backuprestore} set restoredby =userid where restoredby is null');
+            $DB->execute(
+                'update {block_external_backuprestore} set restoredby =:adminid where restoredby = 0',
+                ['adminid' => get_admin()->id]
+            );
+            $dbman->change_field_notnull($table, $field);
+        }
+        upgrade_block_savepoint(true, $newversion, 'my_external_backup_restore_courses');
+    }
     return true;
 }

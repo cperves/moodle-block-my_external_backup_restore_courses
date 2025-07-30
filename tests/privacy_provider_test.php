@@ -257,20 +257,20 @@ class privacy_provider_test extends provider_testcase {
     private function create_backuprestore_entries( stdClass $user) {
         $courseperformed = $this->getDataGenerator()->create_course();
         $entryscheduled = $this->getDataGenerator()->get_plugin_generator('block_my_external_backup_restore_courses')
-            ->create_backup_restore_entry($user->id, $courseperformed->id + 1, $courseperformed->category);
+            ->create_backup_restore_entry($user->id, $user->id, $courseperformed->id + 1, $courseperformed->category);
         $entryinprogress = $this->getDataGenerator()->get_plugin_generator('block_my_external_backup_restore_courses')
-            ->create_backup_restore_entry($user->id, $courseperformed->id + 2, $courseperformed->category);
+            ->create_backup_restore_entry($user->id, $user->id,$courseperformed->id + 2, $courseperformed->category);
         $entryinprogress->status = block_my_external_backup_restore_courses_tools::STATUS_INPROGRESS;
         $entryinprogress = $this->getDataGenerator()->get_plugin_generator('block_my_external_backup_restore_courses')
             ->update_backup_restore_entry($entryinprogress);
         $entryperformed = $this->getDataGenerator()->get_plugin_generator('block_my_external_backup_restore_courses')
-            ->create_backup_restore_entry($user->id, $courseperformed->id, $courseperformed->category);
+            ->create_backup_restore_entry($user->id, $user->id, $courseperformed->id, $courseperformed->category);
         $entryperformed->status = block_my_external_backup_restore_courses_tools::STATUS_PERFORMED;
         $entryperformed->courseid = $courseperformed->id;
         $entryperformed = $this->getDataGenerator()->get_plugin_generator('block_my_external_backup_restore_courses')
             ->update_backup_restore_entry($entryperformed);
         $entryerror = $this->getDataGenerator()->get_plugin_generator('block_my_external_backup_restore_courses')
-            ->create_backup_restore_entry($user->id, $courseperformed->id + 3, $courseperformed->category);
+            ->create_backup_restore_entry($user->id, $user->id, $courseperformed->id + 3, $courseperformed->category);
         $entryerror->status = block_my_external_backup_restore_courses_tools::STATUS_ERROR;
         $entryerror = $this->getDataGenerator()->get_plugin_generator('block_my_external_backup_restore_courses')
             ->update_backup_restore_entry($entryerror);

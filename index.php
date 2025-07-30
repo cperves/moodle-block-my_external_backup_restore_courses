@@ -109,6 +109,7 @@ if ($submit) {
                     $datas->status = block_my_external_backup_restore_courses_tools::STATUS_SCHEDULED;
                     $datas->source = block_my_external_backup_restore_courses_tools::SOURCE_INTERNAL;
                     $datas->timecreated = time();
+                    $datas->restoredby = $USER->id;
                     $datas->id = $DB->insert_record('block_external_backuprestore', $datas);
                 } else {
                     // Update.

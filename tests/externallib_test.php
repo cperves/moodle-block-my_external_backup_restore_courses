@@ -415,6 +415,7 @@ class externallib_test extends externallib_advanced_testcase {
         // Add course to courses to restore
         $datas = new  stdClass();
         $datas->userid = $this->editingteacheruser->id;
+        $datas->restoredby = $this->editingteacheruser->id;
         $datas->externalcourseid = $this->course1->id;
         $datas->externalcoursename = $this->course1->shortname;
         $datas->externalmoodleurl = $CFG->wwwroot;

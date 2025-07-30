@@ -116,6 +116,7 @@ try{
     $admin = get_admin();
     block_my_external_backup_restore_courses_task::create_task(
         $admin->id,
+        $admin->id,
         $options['externalcourseid'], $options['externalcoursename'],
         $options['externalmoodleurl'], $options['courseid'],
         $options['status'], $options['source'],

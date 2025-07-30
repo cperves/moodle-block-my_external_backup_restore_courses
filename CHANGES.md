@@ -1,4 +1,8 @@
 # CHANGES
+* 2025-07-30:
+  * remove unusefull lang strings
+  * add restoredby column, usefull for admin restore for user tool
+  * correct a config bug 
 * 2025-07-23:
   * extract admin tools into separated tool plugin (MDL-85987)
   * add new Cancelled status
