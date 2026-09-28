@@ -30,6 +30,7 @@ use calendartype_test_example\structure;
 use stdClass;
 
 class locallib_test extends \advanced_testcase {
+    protected $datagenerator;
     public function test_cancelled_status(){
         global $CFG, $DB;
         $this->datagenerator = $this->getDataGenerator();
